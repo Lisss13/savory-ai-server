@@ -1,0 +1,25 @@
+### Questions
+
+###
+# Get all questions
+GET http://localhost:4000/questions
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+###
+# Create a new question
+POST http://localhost:4000/questions
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "text": "What is your favorite dish?"
+}
+
+> {% client.global.set("question_id", response.body.data.id); %}
+
+###
+# Delete a question
+DELETE http://localhost:4000/questions/6
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}

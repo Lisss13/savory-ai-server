@@ -1,0 +1,29 @@
+### User API
+
+###
+GET http://localhost:4000/user/1
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+###
+PATCH http://localhost:4000/user/1
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "email": "mironovnikita@gmail.com",
+  "name": "Nikita",
+  "surname": "Mironov"
+}
+
+###
+POST http://localhost:4000/user
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "name": "Arseniy",
+  "company": "SDF",
+  "email": "arse@sdf.com",
+  "password": "arseniy123"
+}

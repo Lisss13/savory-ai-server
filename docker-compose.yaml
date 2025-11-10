@@ -1,0 +1,33 @@
+version: "3.8"
+
+#networks:
+#  app:
+#    driver: bridge
+
+services:
+  postgres:
+    image: postgres:alpine
+    environment:
+      POSTGRES_DB: attic_db
+      POSTGRES_USER: attic_admin
+      POSTGRES_PASSWORD: my_pass
+    volumes:
+      - ../attic_db:/data/postgres
+    ports:
+      - "5432:5432"
+    #    networks:
+    #      - app
+#  example:
+#    build:
+#      context: .
+#      dockerfile: build/Dockerfile${CUSTOM}
+#    depends_on:
+#      - postgres
+#    links:
+#      - postgres
+#    volumes:
+#      - .:/app
+#    networks:
+#      - app
+#    ports:
+#      - "8080:8080"

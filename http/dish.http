@@ -1,0 +1,97 @@
+### Dishes
+
+###
+GET http://localhost:4000/dishes
+Authorization: Bearer {{auth_token}}
+
+###
+GET http://localhost:4000/dishes/category
+Authorization: Bearer {{auth_token}}
+
+###
+# @name createDish
+POST http://localhost:4000/dishes
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "menu_category_id": 3,
+  "name": "Bruschetta",
+  "price": 8.99,
+  "description": "Toasted bread topped with tomatoes, garlic, and basil",
+  "image": "https://example.com/bruschetta.jpg",
+  "ingredients": [
+    {
+      "name": "Bread",
+      "quantity": 2
+    },
+    {
+      "name": "Tomatoes",
+      "quantity": 3
+    },
+    {
+      "name": "Garlic",
+      "quantity": 2
+    },
+    {
+      "name": "Basil",
+      "quantity": 5
+    }
+  ]
+}
+
+###
+GET http://localhost:4000/dishes/1
+Authorization: Bearer {{auth_token}}
+
+###
+# @name updateDish
+PUT http://localhost:4000/dishes/1
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "menu_category_id": {{category_id}},
+  "name": "Bruschetta Deluxe 3",
+  "price": 10.99,
+  "description": "Toasted bread topped with premium tomatoes, garlic, and fresh basil",
+  "image": "https://example.com/bruschetta-deluxe.jpg",
+    "ingredients": [
+    {
+      "name": "Bread 1",
+      "quantity": 3
+    },
+    {
+      "name": "Tomatoes 1",
+      "quantity": 4
+    },
+    {
+      "name": "Garlic 1",
+      "quantity": 3
+    },
+    {
+      "name": "Basil 1",
+      "quantity": 6
+    }
+  ]
+}
+
+
+###
+DELETE http://localhost:4000/dishes/{{dish_id}}
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+### Dish of the Day
+
+###
+# Get the current dish of the day
+GET http://localhost:4000/dishes/dish-of-day
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+###
+# Set a dish as the dish of the day
+POST http://localhost:4000/dishes/1/dish-of-day
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json

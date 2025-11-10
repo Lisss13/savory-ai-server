@@ -1,0 +1,32 @@
+### Authentication API
+
+### Ping the server
+GET http://localhost:4000/ping
+
+### Register a new user
+POST http://localhost:4000/auth/register
+Content-Type: application/json
+
+{
+  "company": "MeetPay",
+  "name": "Arseniy",
+  "email": "mironovq@gmail.com",
+  "phone": "+123456337890",
+  "password": "Qwerty12e"
+}
+
+
+### Login with existing user
+POST http://localhost:4000/auth/login
+Content-Type: application/json
+
+{
+  "email": "mironovq@gmail.com",
+  "password": "Qwerty12e"
+}
+
+> {% client.global.set("auth_token", response.body.data.token); %}
+
+### Access protected route
+GET http://localhost:4000/auth/chek
+Authorization: Bearer {{auth_token}}

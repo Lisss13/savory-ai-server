@@ -1,0 +1,19 @@
+### QR Codes
+###
+GET http://localhost:4000/qrcodes/user/1
+
+###
+GET http://localhost:4000/qrcodes/table/1/1
+
+###
+GET http://localhost:4000/tables/1
+
+###
+POST http://localhost:4000/tables
+Content-Type: application/json
+
+{
+  "user_id": 1,
+  "name": "3",
+  "guest_count": 3
+}

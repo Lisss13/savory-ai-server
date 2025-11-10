@@ -1,0 +1,37 @@
+### Organization API Endpoints
+
+### Get all organizations
+GET http://localhost:4000/organization
+Authorization: Bearer {{auth_token}}
+
+### Get organization by ID
+GET http://localhost:4000/organization/1
+Authorization: Bearer {{auth_token}}
+
+### Update organization
+PATCH http://localhost:4000/organization/1
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Updated Organization Name",
+  "phone": "+0987654321"
+}
+
+### Add user to organization
+POST http://localhost:4000/organization/1/users
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "user_id": 2
+}
+
+### Remove user from organization
+DELETE http://localhost:4000/organization/1/users
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "user_id": 2
+}

@@ -1,0 +1,96 @@
+### Restaurants
+
+###
+# Get all restaurants
+GET http://localhost:4000/restaurants
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+###
+# Create a new restaurant
+POST http://localhost:4000/restaurants
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "organization_id": 1,
+  "name": "Italian Restaurant",
+  "address": "123 Main St, City, Country",
+  "phone": "+1234567890",
+  "website": "https://example.com",
+  "description": "Authentic Italian cuisine",
+  "image_url": "https://example.com/image.jpg",
+  "working_hours": [
+    {
+      "day_of_week": 1,
+      "open_time": "2023-01-01T09:00:00Z",
+      "close_time": "2023-01-01T22:00:00Z"
+    },
+    {
+      "day_of_week": 2,
+      "open_time": "2023-01-01T09:00:00Z",
+      "close_time": "2023-01-01T22:00:00Z"
+    },
+    {
+      "day_of_week": 3,
+      "open_time": "2023-01-01T09:00:00Z",
+      "close_time": "2023-01-01T22:00:00Z"
+    },
+    {
+      "day_of_week": 4,
+      "open_time": "2023-01-01T09:00:00Z",
+      "close_time": "2023-01-01T22:00:00Z"
+    },
+    {
+      "day_of_week": 5,
+      "open_time": "2023-01-01T09:00:00Z",
+      "close_time": "2023-01-01T23:00:00Z"
+    },
+    {
+      "day_of_week": 6,
+      "open_time": "2023-01-01T10:00:00Z",
+      "close_time": "2023-01-01T23:00:00Z"
+    },
+    {
+      "day_of_week": 0,
+      "open_time": "2023-01-01T10:00:00Z",
+      "close_time": "2023-01-01T22:00:00Z"
+    }
+  ]
+}
+
+> {% client.global.set("restaurant_id", response.body.data.id); %}
+
+###
+# Get a specific restaurant by ID
+GET http://localhost:4000/restaurants/{{restaurant_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+###
+# Get all restaurants for a specific user
+GET http://localhost:4000/restaurants/organization/1
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+###
+# Update a restaurant
+PUT http://localhost:4000/restaurants/{{restaurant_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "organization_id": 1,
+  "name": "Updated Italian Restaurant 2",
+  "address": "456 Main St, City, Country 2",
+  "phone": "+1234567830",
+  "website": "https://example-updated.com",
+  "description": "Updated authentic Italian cuisine",
+  "image_url": "https://example.com/updated-image.jpg"
+}
+
+###
+# Delete a restaurant
+DELETE http://localhost:4000/restaurants/{{restaurant_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
