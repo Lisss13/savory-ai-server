@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"savory-ai-server/app/module/restaurant/payload"
 	"savory-ai-server/app/module/restaurant/service"
@@ -83,8 +82,6 @@ func (c *restaurantController) Create(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	fmt.Printf("CreateRestaurantReq: 0 %v\n", req)
-
 	// Validate request
 	if err := response.ValidateStruct(req); err != nil {
 		return response.Resp(ctx, response.Response{
@@ -92,8 +89,6 @@ func (c *restaurantController) Create(ctx *fiber.Ctx) error {
 			Code:     fiber.StatusBadRequest,
 		})
 	}
-
-	fmt.Println("CreateRestaurantReq: 1", req)
 
 	restaurant, err := c.restaurantService.Create(req)
 	if err != nil {

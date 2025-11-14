@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"savory-ai-server/app/module/auth/payload"
 	organizationRepo "savory-ai-server/app/module/organization/repository"
@@ -82,6 +83,22 @@ func (as *authService) Login(req payload.LoginRequest) (res payload.LoginRespons
 	res.Token = token
 	res.Type = "Bearer"
 	res.ExpiresAt = exp.Unix()
+	res.User = payload.RegisterResponse{
+		ID:      user.ID,
+		Email:   user.Email,
+		Name:    user.Name,
+		Company: user.Company,
+		Phone:   user.Phone,
+	}
+
+	res.Organization = payload.UserOrganizationResponse{
+		ID:      company.ID,
+		Name:    company.Name,
+		Company: company.Name,
+		Phone:   company.Phone,
+		AdminID: company.AdminID,
+	}
+	fmt.Println("res.Organization", res.Organization)
 
 	return
 }
@@ -127,6 +144,8 @@ func (as *authService) Register(req payload.RegisterRequest) (res payload.Regist
 	res.ID = user.ID
 	res.Email = user.Email
 	res.Name = user.Name
+	res.Company = user.Company
+	res.Phone = user.Phone
 
 	return
 }

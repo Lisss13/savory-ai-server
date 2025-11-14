@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"context"
 	"flag"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"os"
 	"runtime"
 	"savory-ai-server/app/middleware"
@@ -32,6 +33,13 @@ func NewFiber(cfg *config.Config) *fiber.App {
 		EnablePrintRoutes:     cfg.App.PrintRoutes,
 		DisableStartupMessage: true,
 	})
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowMethods: "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		MaxAge:       3600,
+	}))
 
 	// pass production config to check it
 	response.IsProduction = cfg.App.Production
