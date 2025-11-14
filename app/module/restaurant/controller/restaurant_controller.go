@@ -139,7 +139,7 @@ func (c *restaurantController) Delete(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	if err := c.restaurantService.Delete(uint(id)); err != nil {
+	if err = c.restaurantService.Delete(uint(id)); err != nil {
 		return err
 	}
 

@@ -2,7 +2,6 @@ package storage
 
 import (
 	"gorm.io/gorm"
-	"time"
 )
 
 // Restaurant represents a restaurant
@@ -22,8 +21,8 @@ type Restaurant struct {
 // WorkingHour represents a restaurant's working hours for a specific day
 type WorkingHour struct {
 	gorm.Model
-	RestaurantID uint      `gorm:"column:restaurant_id;not null" json:"restaurant_id"`
-	DayOfWeek    int       `gorm:"column:day_of_week;not null" json:"day_of_week"` // 0 = Sunday, 1 = Monday, etc.
-	OpenTime     time.Time `gorm:"column:open_time;not null" json:"open_time"`
-	CloseTime    time.Time `gorm:"column:close_time;not null" json:"close_time"`
+	RestaurantID uint   `gorm:"column:restaurant_id;not null" json:"restaurant_id"`
+	DayOfWeek    int    `gorm:"column:day_of_week;not null" json:"day_of_week"` // 0 = Sunday, 1 = Monday, etc.
+	OpenTime     string `gorm:"column:open_time;not null" json:"open_time"`
+	CloseTime    string `gorm:"column:close_time;not null" json:"close_time"`
 }

@@ -1,12 +1,10 @@
 package payload
 
-import "time"
-
 // WorkingHourReq represents a working hour in a restaurant request
 type WorkingHourReq struct {
-	DayOfWeek int       `json:"day_of_week" validate:"required,min=0,max=6"`
-	OpenTime  time.Time `json:"open_time" validate:"required"`
-	CloseTime time.Time `json:"close_time" validate:"required"`
+	DayOfWeek int    `json:"day_of_week" validate:"required,min=0,max=6"`
+	OpenTime  string `json:"open_time" validate:"required"`
+	CloseTime string `json:"close_time" validate:"required"`
 }
 
 // CreateRestaurantReq represents a request to create a new restaurant

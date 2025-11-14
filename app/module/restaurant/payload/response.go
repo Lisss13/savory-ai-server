@@ -4,10 +4,10 @@ import "time"
 
 // WorkingHourResp represents a working hour in a restaurant response
 type WorkingHourResp struct {
-	ID        uint      `json:"id"`
-	DayOfWeek int       `json:"day_of_week"`
-	OpenTime  time.Time `json:"open_time"`
-	CloseTime time.Time `json:"close_time"`
+	ID        uint   `json:"id"`
+	DayOfWeek int    `json:"day_of_week"`
+	OpenTime  string `json:"open_time"`
+	CloseTime string `json:"close_time"`
 }
 
 // OrganizationResp represents a user in a restaurant response
