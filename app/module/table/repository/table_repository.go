@@ -67,7 +67,6 @@ func (r *tableRepository) Update(table *storage.Table) (res *storage.Table, err 
 		"restaurant_id": table.RestaurantID,
 		"name":          table.Name,
 		"guest_count":   table.GuestCount,
-		"qr_code_url":   table.QRCodeURL,
 	}).Error; err != nil {
 		return nil, err
 	}

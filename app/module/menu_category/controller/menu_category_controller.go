@@ -97,6 +97,9 @@ func (c *menuCategoryController) Delete(ctx *fiber.Ctx) error {
 	}
 
 	return response.Resp(ctx, response.Response{
+		Data: struct {
+			ID uint `json:"id"`
+		}{ID: uint(id)},
 		Messages: response.Messages{"Category deleted successfully"},
 		Code:     fiber.StatusOK,
 	})

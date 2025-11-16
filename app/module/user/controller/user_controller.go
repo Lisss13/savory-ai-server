@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"savory-ai-server/app/module/user/payload"
 	"savory-ai-server/app/module/user/service"
@@ -42,17 +41,11 @@ func (uc *userController) Get(ctx *fiber.Ctx) error {
 }
 
 func (uc *userController) Update(ctx *fiber.Ctx) error {
-	userID, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
-	if err != nil {
-		return err
-	}
 	userData := new(payload.UserUpdateReq)
-	if err = ctx.BodyParser(userData); err != nil {
+	if err := ctx.BodyParser(userData); err != nil {
 		return err
 	}
 
-	fmt.Println("userID", userID)
-	fmt.Println("user", userData)
 	return nil
 }
 

@@ -28,6 +28,9 @@ var QRCodeModule = fx.Options(
 func (r *QRCodeRouter) RegisterQRCodeRoutes(auth fiber.Handler) {
 	qrCodeController := r.Controller.QRCode
 	r.App.Route("/qrcodes", func(router fiber.Router) {
-		router.Get("/table/:table_id", auth, qrCodeController.GenerateTableQRCode)
+		router.Get("/restaurant/:restaurant_id", qrCodeController.GetRestaurantQRCode)
+		router.Get("/restaurant/:restaurant_id/download", qrCodeController.DownloadRestaurantQRCode)
+		router.Get("/restaurant/:restaurant_id/table/:table_id", qrCodeController.GetTableQRCode)
+		router.Get("/restaurant/:restaurant_id/table/:table_id/download", qrCodeController.DownloadTableQRCode)
 	})
 }

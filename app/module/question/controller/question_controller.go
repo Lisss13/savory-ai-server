@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"savory-ai-server/app/module/question/payload"
 	"savory-ai-server/app/module/question/service"
@@ -56,9 +55,6 @@ func (c *questionController) Create(ctx *fiber.Ctx) error {
 	// Get organization ID from JWT token
 	user := ctx.Locals("user").(jwt.JWTData)
 
-	fmt.Printf("CreateQuestionReq: 0 %v\n", req)
-	fmt.Printf("CreateQuestionReq: 1 %v\n", user)
-
 	question, err := c.questionService.Create(req, user.CompanyID)
 	if err != nil {
 		return err
@@ -82,6 +78,9 @@ func (c *questionController) Delete(ctx *fiber.Ctx) error {
 	}
 
 	return response.Resp(ctx, response.Response{
+		Data: struct {
+			ID uint `json:"id"`
+		}{ID: uint(id)},
 		Messages: response.Messages{"Question deleted successfully"},
 		Code:     fiber.StatusOK,
 	})

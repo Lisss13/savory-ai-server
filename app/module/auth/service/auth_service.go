@@ -2,12 +2,10 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"savory-ai-server/app/module/auth/payload"
 	organizationRepo "savory-ai-server/app/module/organization/repository"
 	organizationService "savory-ai-server/app/module/organization/service"
-	qrCodeService "savory-ai-server/app/module/qr_code/service"
 	user_repo "savory-ai-server/app/module/user/repository"
 	"savory-ai-server/app/storage"
 	"savory-ai-server/utils/config"
@@ -18,7 +16,6 @@ import (
 type authService struct {
 	userRepo            user_repo.UserRepository
 	config              *config.Config
-	qrService           qrCodeService.QRCodeService
 	organizationRepo    organizationRepo.OrganizationRepository
 	organizationService organizationService.OrganizationService
 }
@@ -32,14 +29,12 @@ type AuthService interface {
 func NewAuthService(
 	userRepo user_repo.UserRepository,
 	cfg *config.Config,
-	qrService qrCodeService.QRCodeService,
 	organizationRepo organizationRepo.OrganizationRepository,
 	organizationService organizationService.OrganizationService,
 ) AuthService {
 	return &authService{
 		userRepo:            userRepo,
 		config:              cfg,
-		qrService:           qrService,
 		organizationService: organizationService,
 		organizationRepo:    organizationRepo,
 	}
@@ -98,7 +93,6 @@ func (as *authService) Login(req payload.LoginRequest) (res payload.LoginRespons
 		Phone:   company.Phone,
 		AdminID: company.AdminID,
 	}
-	fmt.Println("res.Organization", res.Organization)
 
 	return
 }
@@ -133,11 +127,6 @@ func (as *authService) Register(req payload.RegisterRequest) (res payload.Regist
 
 	// Создание компании и связывание с пользователем
 	if err = as.organizationService.CreateOrganization(user.ID, req.CompanyName, req.Phone); err != nil {
-		return
-	}
-
-	// generate qr code for user
-	if _, err = as.qrService.GenerateUserQRCode(user.ID); err != nil {
 		return
 	}
 

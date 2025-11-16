@@ -27,7 +27,7 @@ type Response struct {
 	Code     int      `json:"code"`
 	Messages Messages `json:"messages"`
 	Data     any      `json:"data,omitempty"`
-	Meta	 any      `json:"meta,omitempty"`
+	Meta     any      `json:"meta,omitempty"`
 }
 
 // nothiing to describe this fucking variable
@@ -72,6 +72,22 @@ func Resp(c *fiber.Ctx, resp Response) error {
 		resp.Code = fiber.StatusOK
 	}
 	c.Status(resp.Code)
+	// return response
+	return c.JSON(resp)
+}
+
+func RespDelete(c *fiber.Ctx, id uint64, resp Response) error {
+	// set status
+	if resp.Code == 0 {
+		resp.Code = fiber.StatusOK
+	}
+
+	c.Status(resp.Code)
+
+	resp.Data = struct {
+		ID uint64 `json:"id"`
+	}{ID: id}
+
 	// return response
 	return c.JSON(resp)
 }

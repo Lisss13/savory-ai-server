@@ -4,7 +4,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"savory-ai-server/app/module/table/payload"
 	"savory-ai-server/app/module/table/service"
-	"savory-ai-server/utils/jwt"
 	"savory-ai-server/utils/response"
 	"strconv"
 )
@@ -91,9 +90,7 @@ func (c *tableController) Create(ctx *fiber.Ctx) error {
 		})
 	}
 
-	user := ctx.Locals("user").(jwt.JWTData)
-
-	table, err := c.tableService.Create(req, user.CompanyID)
+	table, err := c.tableService.Create(req)
 	if err != nil {
 		return err
 	}
@@ -124,9 +121,7 @@ func (c *tableController) Update(ctx *fiber.Ctx) error {
 		})
 	}
 
-	user := ctx.Locals("user").(jwt.JWTData)
-
-	table, err := c.tableService.Update(uint(id), req, user.CompanyID)
+	table, err := c.tableService.Update(uint(id), req)
 	if err != nil {
 		return err
 	}
@@ -144,11 +139,11 @@ func (c *tableController) Delete(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	if err := c.tableService.Delete(uint(id)); err != nil {
+	if err = c.tableService.Delete(uint(id)); err != nil {
 		return err
 	}
 
-	return response.Resp(ctx, response.Response{
+	return response.RespDelete(ctx, id, response.Response{
 		Messages: response.Messages{"Table deleted successfully"},
 		Code:     fiber.StatusOK,
 	})

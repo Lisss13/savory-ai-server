@@ -11,11 +11,10 @@ type RestaurantResp struct {
 // TableResp represents a table in a response
 type TableResp struct {
 	ID         uint           `json:"id"`
-	CreatedAt  time.Time      `json:"created_at"`
+	CreatedAt  time.Time      `json:"createdAt"`
 	Restaurant RestaurantResp `json:"restaurant"`
 	Name       string         `json:"name"`
-	GuestCount int            `json:"guest_count"`
-	QRCodeURL  string         `json:"qr_code_url"`
+	GuestCount int            `json:"guestCount"`
 }
 
 // TablesResp represents a list of tables in a response

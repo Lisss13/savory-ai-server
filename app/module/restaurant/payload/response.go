@@ -35,3 +35,8 @@ type RestaurantResp struct {
 type RestaurantsResp struct {
 	Restaurants []RestaurantResp `json:"restaurants"`
 }
+
+// DeleteRestaurantResp represents a response after deleting a restaurant
+type DeleteRestaurantResp struct {
+	ID uint `json:"id"`
+}

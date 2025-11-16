@@ -139,11 +139,13 @@ func (c *restaurantController) Delete(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	if err = c.restaurantService.Delete(uint(id)); err != nil {
+	deletedResp, err := c.restaurantService.Delete(uint(id))
+	if err != nil {
 		return err
 	}
 
 	return response.Resp(ctx, response.Response{
+		Data:     deletedResp,
 		Messages: response.Messages{"Restaurant deleted successfully"},
 		Code:     fiber.StatusOK,
 	})

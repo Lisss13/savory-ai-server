@@ -1,6 +1,7 @@
 package service
 
 import (
+	qrCodeService "savory-ai-server/app/module/qr_code/service"
 	"savory-ai-server/app/module/restaurant/payload"
 	"savory-ai-server/app/module/restaurant/repository"
 	"savory-ai-server/app/storage"
@@ -8,6 +9,7 @@ import (
 
 type restaurantService struct {
 	restaurantRepo repository.RestaurantRepository
+	qrService      qrCodeService.QRCodeService
 }
 
 type RestaurantService interface {
@@ -16,12 +18,13 @@ type RestaurantService interface {
 	GetByOrganizationID(organizationID uint) (*payload.RestaurantsResp, error)
 	Create(req *payload.CreateRestaurantReq) (*payload.RestaurantResp, error)
 	Update(id uint, req *payload.UpdateRestaurantReq) (*payload.RestaurantResp, error)
-	Delete(id uint) error
+	Delete(id uint) (*payload.DeleteRestaurantResp, error)
 }
 
-func NewRestaurantService(restaurantRepo repository.RestaurantRepository) RestaurantService {
+func NewRestaurantService(restaurantRepo repository.RestaurantRepository, qrService qrCodeService.QRCodeService) RestaurantService {
 	return &restaurantService{
 		restaurantRepo: restaurantRepo,
+		qrService:      qrService,
 	}
 }
 
@@ -95,6 +98,10 @@ func (s *restaurantService) Create(req *payload.CreateRestaurantReq) (*payload.R
 		return nil, err
 	}
 
+	if _, err = s.qrService.GenerateRestaurantQRCode(createdRestaurant.ID); err != nil {
+		return nil, err
+	}
+
 	resp := mapRestaurantToResponse(createdRestaurant)
 	return &resp, nil
 }
@@ -124,8 +131,11 @@ func (s *restaurantService) Update(id uint, req *payload.UpdateRestaurantReq) (*
 	return &resp, nil
 }
 
-func (s *restaurantService) Delete(id uint) error {
-	return s.restaurantRepo.Delete(id)
+func (s *restaurantService) Delete(id uint) (*payload.DeleteRestaurantResp, error) {
+	if err := s.restaurantRepo.Delete(id); err != nil {
+		return nil, err
+	}
+	return &payload.DeleteRestaurantResp{ID: id}, nil
 }
 
 // Helper function to map a restaurant to a response

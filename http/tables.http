@@ -1,7 +1,7 @@
 ### Tables API
 
 ###
-GET http://localhost:4000/tables/restaurant/1
+GET http://localhost:4000/tables/restaurant/8
 Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
@@ -22,6 +22,6 @@ Authorization: Bearer {{auth_token}}
 
 {
   "name": "3",
-  "guest_count": 3,
-  "restaurant_id": 1
+  "guestCount": 3,
+  "restaurantId": 8
 }
