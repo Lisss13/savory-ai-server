@@ -13,6 +13,7 @@ type questionService struct {
 type QuestionService interface {
 	GetAll() (*payload.QuestionsResp, error)
 	GetByID(id uint) (*payload.QuestionResp, error)
+	GetByOrganizationID(id uint) (*payload.QuestionsResp, error)
 	Create(req *payload.CreateQuestionReq, organizationID uint) (*payload.QuestionResp, error)
 	Delete(id uint) error
 }
@@ -53,6 +54,26 @@ func (s *questionService) GetByID(id uint) (*payload.QuestionResp, error) {
 		ID:        question.ID,
 		CreatedAt: question.CreatedAt,
 		Text:      question.Text,
+	}, nil
+}
+
+func (s *questionService) GetByOrganizationID(id uint) (*payload.QuestionsResp, error) {
+	questions, err := s.questionRepo.FindByOrganizationID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	var questionResps []payload.QuestionResp
+	for _, question := range questions {
+		questionResps = append(questionResps, payload.QuestionResp{
+			ID:        question.ID,
+			CreatedAt: question.CreatedAt,
+			Text:      question.Text,
+		})
+	}
+
+	return &payload.QuestionsResp{
+		Questions: questionResps,
 	}, nil
 }
 

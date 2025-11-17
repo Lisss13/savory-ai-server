@@ -26,7 +26,10 @@ func NewQuestionController(service service.QuestionService) QuestionController {
 }
 
 func (c *questionController) GetAll(ctx *fiber.Ctx) error {
-	questions, err := c.questionService.GetAll()
+	// Get organization ID from JWT token
+	user := ctx.Locals("user").(jwt.JWTData)
+
+	questions, err := c.questionService.GetByOrganizationID(user.CompanyID)
 	if err != nil {
 		return err
 	}
