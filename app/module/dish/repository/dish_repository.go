@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"errors"
+	"gorm.io/gorm"
 	"savory-ai-server/app/storage"
 	"savory-ai-server/internal/bootstrap/database"
 )
@@ -16,7 +18,7 @@ type DishRepository interface {
 	Create(dish *storage.Dish) (res *storage.Dish, err error)
 	Update(dish *storage.Dish) (res *storage.Dish, err error)
 	Delete(id uint) error
-	FindDishOfDay() (dish *storage.Dish, err error)
+	FindDishOfDay(companyID uint) (dish *storage.Dish, err error)
 	SetDishOfDay(id uint) (dish *storage.Dish, err error)
 }
 
@@ -34,9 +36,17 @@ func (r *dishRepository) FindAll() (dishes []*storage.Dish, err error) {
 }
 
 func (r *dishRepository) FindByOrganizationID(organizationID uint) (dishes []*storage.Dish, err error) {
-	if err := r.DB.DB.Preload("Organization").Preload("MenuCategory").Preload("Ingredients").Where("organization_id = ?", organizationID).Find(&dishes).Error; err != nil {
+	err = r.DB.DB.
+		Preload("Organization").
+		Preload("MenuCategory").
+		Preload("Ingredients").
+		Where("organization_id = ?", organizationID).
+		Find(&dishes).Error
+
+	if err != nil {
 		return nil, err
 	}
+
 	return dishes, nil
 }
 
@@ -110,12 +120,13 @@ func (r *dishRepository) Delete(id uint) error {
 	return r.DB.DB.Delete(&storage.Dish{}, id).Error
 }
 
-func (r *dishRepository) FindDishOfDay() (dish *storage.Dish, err error) {
+func (r *dishRepository) FindDishOfDay(companyID uint) (dish *storage.Dish, err error) {
 	err = r.DB.DB.
 		Preload("Organization").
 		Preload("MenuCategory").
 		Preload("Ingredients").
 		Where("is_dish_of_day = ?", true).
+		Where("organization_id = ?", companyID).
 		First(&dish).
 		Error
 
@@ -128,12 +139,24 @@ func (r *dishRepository) FindDishOfDay() (dish *storage.Dish, err error) {
 
 func (r *dishRepository) SetDishOfDay(id uint) (dish *storage.Dish, err error) {
 	// First, reset all dishes to not be dish of the day
-	if err := r.DB.DB.Model(&storage.Dish{}).Where("is_dish_of_day = ?", true).Update("is_dish_of_day", false).Error; err != nil {
+	err = r.DB.DB.
+		Model(&storage.Dish{}).
+		Where("is_dish_of_day = ?", true).
+		Update("is_dish_of_day", false).
+		Error
+
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
 
 	// Then, set the specified dish as dish of the day
-	if err := r.DB.DB.Model(&storage.Dish{}).Where("id = ?", id).Update("is_dish_of_day", true).Error; err != nil {
+	err = r.DB.DB.
+		Model(&storage.Dish{}).
+		Where("id = ?", id).
+		Update("is_dish_of_day", true).
+		Error
+	
+	if err != nil {
 		return nil, err
 	}
 

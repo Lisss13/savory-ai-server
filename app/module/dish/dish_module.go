@@ -33,10 +33,10 @@ func (r *DishRouter) RegisterDishRoutes(auth fiber.Handler) {
 		router.Get("/", auth, dishController.GetAll)
 		router.Get("/category", auth, dishController.GetDishCategory)
 		router.Get("/dish-of-day", auth, dishController.GetDishOfDay)
+		router.Post("/dish-of-day/:id", auth, dishController.SetDishOfDay)
 		router.Get("/:id", auth, dishController.GetByID)
 		router.Post("/", auth, dishController.Create)
 		router.Put("/:id", auth, dishController.Update)
 		router.Delete("/:id", auth, dishController.Delete)
-		router.Post("/:id/dish-of-day", auth, dishController.SetDishOfDay)
 	})
 }

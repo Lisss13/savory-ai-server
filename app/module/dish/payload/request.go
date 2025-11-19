@@ -8,7 +8,7 @@ type IngredientReq struct {
 
 // CreateDishReq represents a request to create a new dish
 type CreateDishReq struct {
-	MenuCategoryID uint            `json:"menu_category_id" validate:"required"`
+	MenuCategoryID uint            `json:"menuCategoryId" validate:"required"`
 	Name           string          `json:"name" validate:"required"`
 	Price          float64         `json:"price" validate:"required"`
 	Description    string          `json:"description"`
@@ -18,7 +18,7 @@ type CreateDishReq struct {
 
 // UpdateDishReq represents a request to update an existing dish
 type UpdateDishReq struct {
-	MenuCategoryID uint            `json:"menu_category_id" validate:"required"`
+	MenuCategoryID uint            `json:"menuCategoryId" validate:"required"`
 	Name           string          `json:"name" validate:"required"`
 	Price          float64         `json:"price" validate:"required"`
 	Description    string          `json:"description"`

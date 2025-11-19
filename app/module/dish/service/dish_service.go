@@ -20,7 +20,7 @@ type DishService interface {
 	Create(req *payload.CreateDishReq, organizationID uint) (*payload.DishResp, error)
 	Update(id uint, req *payload.UpdateDishReq, organizationID uint) (*payload.DishResp, error)
 	Delete(id uint) error
-	GetDishOfDay() (*payload.DishResp, error)
+	GetDishOfDay(companyID uint) (*payload.DishResp, error)
 	SetDishOfDay(id uint) (*payload.DishResp, error)
 }
 
@@ -175,8 +175,8 @@ func (s *dishService) Delete(id uint) error {
 	return s.dishRepo.Delete(id)
 }
 
-func (s *dishService) GetDishOfDay() (*payload.DishResp, error) {
-	dish, err := s.dishRepo.FindDishOfDay()
+func (s *dishService) GetDishOfDay(companyID uint) (*payload.DishResp, error) {
+	dish, err := s.dishRepo.FindDishOfDay(companyID)
 	if err != nil {
 		return nil, err
 	}

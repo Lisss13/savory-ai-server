@@ -151,14 +151,15 @@ func (c *dishController) Delete(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	return response.Resp(ctx, response.Response{
+	return response.RespDelete(ctx, id, response.Response{
 		Messages: response.Messages{"Dish deleted successfully"},
 		Code:     fiber.StatusOK,
 	})
 }
 
 func (c *dishController) GetDishOfDay(ctx *fiber.Ctx) error {
-	dish, err := c.dishService.GetDishOfDay()
+	user := ctx.Locals("user").(jwt.JWTData)
+	dish, err := c.dishService.GetDishOfDay(user.CompanyID)
 	if err != nil {
 		return err
 	}

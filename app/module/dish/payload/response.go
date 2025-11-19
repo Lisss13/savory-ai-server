@@ -27,9 +27,9 @@ type MenuCategoryResp struct {
 // DishResp represents a dish in a response
 type DishResp struct {
 	ID           uint             `json:"id"`
-	CreatedAt    time.Time        `json:"created_at"`
+	CreatedAt    time.Time        `json:"createdAt"`
 	Organization OrganizationResp `json:"organization"`
-	MenuCategory MenuCategoryResp `json:"menu_category"`
+	MenuCategory MenuCategoryResp `json:"menuCategory"`
 	Name         string           `json:"name"`
 	Price        float64          `json:"price"`
 	Description  string           `json:"description"`

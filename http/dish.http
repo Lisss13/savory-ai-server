@@ -15,7 +15,7 @@ Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 {
-  "menu_category_id": 3,
+  "menuCategoryId": 3,
   "name": "Bruschetta",
   "price": 8.99,
   "description": "Toasted bread topped with tomatoes, garlic, and basil",
