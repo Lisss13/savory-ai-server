@@ -58,3 +58,48 @@ Authorization: Bearer {{token}}
 ### Get sessions by restaurant
 GET {{host}}/chat/restaurant/11
 Authorization: Bearer {{token}}
+
+### Restaurant Chat API
+# The following requests are for testing the restaurant chat functionality
+
+### Start a restaurant chat session
+# Creates a new chat session for a specific restaurant
+# Response: Chat session details including ID, active status, and last active timestamp
+POST {{host}}/chat/restaurant/session/start
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "restaurantId": 11
+}
+
+### Close a restaurant chat session
+# Closes an active restaurant chat session
+# Response: Success message
+POST {{host}}/chat/restaurant/session/close/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### Send a message from a restaurant
+# Sends a message from a restaurant and receives a bot response
+# Response: Bot message with content, ID, and timestamp
+POST {{host}}/chat/restaurant/message/send
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "sessionId": 1,
+  "content": "Hello, I'd like to know more about your services."
+}
+
+### Get messages from a restaurant session
+# Retrieves all messages from a specific restaurant chat session
+# Response: List of messages with their content, ID, and timestamp
+GET {{host}}/chat/restaurant/session/1/messages
+Authorization: Bearer {{token}}
+
+### Get all sessions for a restaurant
+# Retrieves all chat sessions for a specific restaurant
+# Response: List of sessions with their IDs, active status, and last active timestamp
+GET {{host}}/chat/restaurant/sessions/11
+Authorization: Bearer {{token}}

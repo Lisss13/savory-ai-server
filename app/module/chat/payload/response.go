@@ -52,6 +52,44 @@ type TableChatSessionsByTableIDResp struct {
 	Sessions []TableChatSessionsResp `json:"sessions"`
 }
 
+type RestaurantResp struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+}
+
+type RestaurantMessageResp struct {
+	ID      uint      `json:"id"`
+	Content string    `json:"content"`
+	SentAt  time.Time `json:"sentAt"`
+}
+
+type RestaurantChatSession struct {
+	ID         uint                  `json:"id"`
+	Active     bool                  `json:"active"`
+	LastActive time.Time             `json:"lastActive"`
+	Restaurant RestaurantResp        `json:"restaurant"`
+	Messages   []RestaurantMessageResp `json:"messages"`
+}
+
+type RestaurantChatSessionResp struct {
+	Session RestaurantChatSession `json:"session"`
+}
+
 type RestaurantChatSessionsResp struct {
-	Sessions []TableChatSessionsResp `json:"sessions"`
+	Sessions []RestaurantChatSessionResp `json:"sessions"`
+}
+
+type RestaurantChatMessageResp struct {
+	ID         uint      `json:"id"`
+	Content    string    `json:"content"`
+	SentAt     time.Time `json:"sentAt"`
+	AuthorType string    `json:"authorType"`
+}
+
+type RestaurantChatMessagesResp struct {
+	Messages []RestaurantChatMessageResp `json:"messages"`
+}
+
+type RestaurantMessagesRespFormBot struct {
+	Message Message `json:"message"`
 }

@@ -19,3 +19,12 @@ type SendTableMessageReq struct {
 type StartRestaurantSessionReq struct {
 	RestaurantID uint `json:"restaurantId" validate:"required"`
 }
+
+type CloseRestaurantSessionReq struct {
+	SessionID uint `json:"sessionId" validate:"required"`
+}
+
+type SendRestaurantMessageReq struct {
+	SessionID uint   `json:"sessionId" validate:"required"`
+	Content   string `json:"content" validate:"required"`
+}

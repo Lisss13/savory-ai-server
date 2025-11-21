@@ -20,6 +20,13 @@ type ChatController interface {
 	MessageFromTable(ctx *fiber.Ctx) error
 	GetMessageFromTableSession(ctx *fiber.Ctx) error
 	GetSessionsFromTable(ctx *fiber.Ctx) error
+
+	// Чаты для ресторанов
+	StartRestaurantSession(ctx *fiber.Ctx) error
+	CloseRestaurantSession(ctx *fiber.Ctx) error
+	MessageFromRestaurant(ctx *fiber.Ctx) error
+	GetRestaurantMessagesFromSession(ctx *fiber.Ctx) error
+	GetRestaurantSessions(ctx *fiber.Ctx) error
 }
 
 func NewChatController(service service.ChatService) ChatController {
@@ -162,6 +169,126 @@ func (c *chatController) GetSessionsFromTable(ctx *fiber.Ctx) error {
 	return response.Resp(ctx, response.Response{
 		Data:     sessions,
 		Messages: response.Messages{"Sessions retrieved successfully"},
+		Code:     fiber.StatusOK,
+	})
+}
+
+// ----------------------- Restaurant Chat Methods ----------------------
+
+// StartRestaurantSession создание чата для ресторана
+func (c *chatController) StartRestaurantSession(ctx *fiber.Ctx) error {
+	req := new(payload.StartRestaurantSessionReq)
+	if err := ctx.BodyParser(req); err != nil {
+		return err
+	}
+
+	// Validate request
+	if err := response.ValidateStruct(req); err != nil {
+		return response.Resp(ctx, response.Response{
+			Messages: response.Messages{err.Error()},
+			Code:     fiber.StatusBadRequest,
+		})
+	}
+
+	session, err := c.chatService.StartRestaurantSession(req)
+	if err != nil {
+		return err
+	}
+
+	return response.Resp(ctx, response.Response{
+		Data:     session,
+		Messages: response.Messages{"Restaurant chat session started successfully"},
+		Code:     fiber.StatusOK,
+	})
+}
+
+// CloseRestaurantSession закрытие сессии чата для ресторана
+func (c *chatController) CloseRestaurantSession(ctx *fiber.Ctx) error {
+	sessionID, err := strconv.ParseUint(ctx.Params("session_id"), 10, 32)
+	if err != nil {
+		return response.Resp(ctx, response.Response{
+			Messages: response.Messages{"Invalid session ID"},
+			Code:     fiber.StatusBadRequest,
+		})
+	}
+
+	if err = c.chatService.CloseRestaurantSession(uint(sessionID)); err != nil {
+		return err
+	}
+
+	return response.Resp(ctx, response.Response{
+		Messages: response.Messages{"Restaurant chat session closed successfully"},
+		Code:     fiber.StatusOK,
+	})
+}
+
+// MessageFromRestaurant сообщения, которые отправляют клиенты
+func (c *chatController) MessageFromRestaurant(ctx *fiber.Ctx) error {
+	req := new(payload.SendRestaurantMessageReq)
+	if err := ctx.BodyParser(req); err != nil {
+		return err
+	}
+
+	// Validate request
+	if err := response.ValidateStruct(req); err != nil {
+		return response.Resp(ctx, response.Response{
+			Messages: response.Messages{err.Error()},
+			Code:     fiber.StatusBadRequest,
+		})
+	}
+
+	message, err := c.chatService.MessageFromRestaurant(req)
+	if err != nil {
+		return err
+	}
+
+	return response.Resp(ctx, response.Response{
+		Data:     message,
+		Messages: response.Messages{"Message sent successfully"},
+		Code:     fiber.StatusOK,
+	})
+}
+
+// GetRestaurantMessagesFromSession получение сообщений из сессии чата для ресторана
+func (c *chatController) GetRestaurantMessagesFromSession(ctx *fiber.Ctx) error {
+	sessionID, err := strconv.ParseUint(ctx.Params("session_id"), 10, 32)
+	if err != nil {
+		return response.Resp(ctx, response.Response{
+			Messages: response.Messages{"Invalid session ID"},
+			Code:     fiber.StatusBadRequest,
+		})
+	}
+
+	messages, err := c.chatService.GetRestaurantMessagesFromSession(uint(sessionID))
+	if err != nil {
+		return err
+	}
+
+	return response.Resp(ctx, response.Response{
+		Data:     messages,
+		Messages: response.Messages{"Messages retrieved successfully"},
+		Code:     fiber.StatusOK,
+	})
+}
+
+// GetRestaurantSessions получение сессий чата для ресторана
+func (c *chatController) GetRestaurantSessions(ctx *fiber.Ctx) error {
+	restaurantID, err := strconv.ParseUint(ctx.Params("restaurant_id"), 10, 32)
+	if err != nil {
+		return response.Resp(ctx, response.Response{
+			Messages: response.Messages{"Invalid restaurant ID"},
+			Code:     fiber.StatusBadRequest,
+		})
+	}
+
+	sessions, err := c.chatService.GetRestaurantSessions(uint(restaurantID))
+	if err != nil {
+		return err
+	}
+
+	return response.Resp(ctx, response.Response{
+		Data:     sessions,
+		Messages: response.Messages{"Restaurant chat sessions retrieved successfully"},
 		Code:     fiber.StatusOK,
 	})
 }
