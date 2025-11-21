@@ -11,7 +11,7 @@ type UserResp struct {
 
 type MenuCategoryResp struct {
 	ID        uint      `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt time.Time `json:"createdAt"`
 	Name      string    `json:"name"`
 }
 

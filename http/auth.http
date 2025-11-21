@@ -21,8 +21,8 @@ POST http://localhost:4000/auth/login
 Content-Type: application/json
 
 {
-  "email": "mironovq3@gmail.com",
-  "password": "Qwerty12e"
+  "email": "nik@gmail.com",
+  "password": "Qwerty12"
 }
 
 > {% client.global.set("auth_token", response.body.data.token); %}

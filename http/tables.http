@@ -1,7 +1,7 @@
 ### Tables API
 
 ###
-GET http://localhost:4000/tables/restaurant/8
+GET http://localhost:4000/tables/restaurant/11
 Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 

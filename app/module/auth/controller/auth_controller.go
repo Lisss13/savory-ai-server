@@ -43,10 +43,13 @@ func (ac *authController) Login(c *fiber.Ctx) error {
 }
 
 // Register
-func (ac *authController) Register(c *fiber.Ctx) error {
+func (ac *authController) Register(ctx *fiber.Ctx) error {
 	req := new(payload.RegisterRequest)
-	if err := response.ParseAndValidate(c, req); err != nil {
-		return err
+	if err := response.ParseAndValidate(ctx, req); err != nil {
+		return response.Resp(ctx, response.Response{
+			Messages: response.Messages{err.Error()},
+			Code:     fiber.StatusBadRequest,
+		})
 	}
 
 	res, err := ac.authService.Register(*req)
@@ -54,7 +57,7 @@ func (ac *authController) Register(c *fiber.Ctx) error {
 		return err
 	}
 
-	return response.Resp(c, response.Response{
+	return response.Resp(ctx, response.Response{
 		Data:     res,
 		Messages: response.Messages{"Register success"},
 		Code:     fiber.StatusOK,

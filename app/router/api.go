@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"savory-ai-server/app/middleware"
 	"savory-ai-server/app/module/auth"
+	"savory-ai-server/app/module/chat"
 	"savory-ai-server/app/module/dish"
 	"savory-ai-server/app/module/file_upload"
 	"savory-ai-server/app/module/menu_category"
@@ -31,6 +32,7 @@ type Router struct {
 	QuestionRouter     *question.QuestionRouter
 	RestaurantRouter   *restaurant.RestaurantRouter
 	OrganizationRouter *organization.OrganizationRouter
+	ChatRouter         *chat.ChatRouter
 }
 
 func NewRouter(
@@ -47,6 +49,7 @@ func NewRouter(
 	questionRouter *question.QuestionRouter,
 	restaurantRouter *restaurant.RestaurantRouter,
 	organizationRouter *organization.OrganizationRouter,
+	chatRouter *chat.ChatRouter,
 ) *Router {
 	return &Router{
 		App:                fiber,
@@ -61,6 +64,7 @@ func NewRouter(
 		QuestionRouter:     questionRouter,
 		RestaurantRouter:   restaurantRouter,
 		OrganizationRouter: organizationRouter,
+		ChatRouter:         chatRouter,
 	}
 }
 
@@ -96,4 +100,5 @@ func (r *Router) Register() {
 	r.QuestionRouter.RegisterQuestionRoutes(authRequired)
 	r.RestaurantRouter.RegisterRestaurantRoutes(authRequired)
 	r.OrganizationRouter.RegisterOrganizationRoutes(authRequired)
+	r.ChatRouter.RegisterChatRoutes(authRequired)
 }

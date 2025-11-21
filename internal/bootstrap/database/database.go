@@ -75,6 +75,10 @@ func Models() []any {
 		&storage.Restaurant{},
 		&storage.WorkingHour{},
 		&storage.Organization{},
+		&storage.TableChatSessions{},
+		&storage.TableChatMessage{},
+		&storage.RestaurantChatSessions{},
+		&storage.RestaurantChatMessage{},
 	}
 }
 

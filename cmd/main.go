@@ -5,6 +5,7 @@ import (
 	"go.uber.org/fx"
 	"savory-ai-server/app/middleware"
 	"savory-ai-server/app/module/auth"
+	"savory-ai-server/app/module/chat"
 	"savory-ai-server/app/module/dish"
 	"savory-ai-server/app/module/file_upload"
 	"savory-ai-server/app/module/menu_category"
@@ -47,6 +48,7 @@ func main() {
 		question.QuestionModule,
 		restaurant.RestaurantModule,
 		organization.OrganizationModuler,
+		chat.ChatModule,
 
 		// start aplication
 		fx.Invoke(bootstrap.Start),

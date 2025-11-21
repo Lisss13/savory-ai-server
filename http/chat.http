@@ -1,0 +1,60 @@
+### Chat API
+# This file contains HTTP requests to test the chat functionality of the Savory AI server.
+# The chat API allows users to interact with a bot through a table-based chat system.
+
+@host = http://localhost:4000
+@token = {{auth_token}} # This token is set after login in auth.http
+
+### Get restaurant chats
+# Retrieves all chat sessions for a specific restaurant
+# Response: List of chat sessions with their IDs, active status, and last active timestamp
+GET {{host}}/chat/restaurant/11
+Authorization: Bearer {{token}}
+
+### Start a chat session for a table
+# Creates a new chat session for a specific table in a restaurant
+# Response: Chat session details including ID, active status, and last active timestamp
+POST {{host}}/chat/table/session/start
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "tableId": 22,
+  "restaurantId": 11
+}
+
+### Close a chat session
+# Closes an active chat session
+# Response: Success message
+POST {{host}}/chat/table/session/close/9
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+
+### Send a message from a table
+# Sends a message from a user at a table and receives a bot response
+# Response: Bot message with content, ID, and timestamp
+POST {{host}}/chat/table/message/send
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "sessionId": 9,
+  "content": "Hello, I'd like to know more about today's specials."
+}
+
+### Get messages from a session
+# Retrieves all messages from a specific chat session
+# Response: List of messages with their content, ID, and timestamp
+GET {{host}}/chat/table/session/9/messages
+Authorization: Bearer {{token}}
+
+### Get sessions for a table
+# Retrieves all chat sessions for a specific table
+# Response: List of sessions with their IDs, active status, and last active timestamp
+GET {{host}}/chat/table/session/22
+Authorization: Bearer {{token}}
+
+### Get sessions by restaurant
+GET {{host}}/chat/restaurant/11
+Authorization: Bearer {{token}}
