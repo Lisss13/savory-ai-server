@@ -79,6 +79,7 @@ func Models() []any {
 		&storage.TableChatMessage{},
 		&storage.RestaurantChatSessions{},
 		&storage.RestaurantChatMessage{},
+		&storage.PasswordResetCode{},
 	}
 }
 

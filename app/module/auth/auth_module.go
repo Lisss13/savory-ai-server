@@ -40,5 +40,9 @@ func (ar *AuthRouter) RegisterAuthRoutes(auth fiber.Handler) {
 		router.Post("/login", authController.Login)
 		router.Post("/register", authController.Register)
 		router.Post("/change-password", auth, authController.ChangePassword)
+
+		// Password reset routes
+		router.Post("/request-password-reset", authController.RequestPasswordReset)
+		router.Post("/verify-password-reset", authController.VerifyPasswordReset)
 	})
 }

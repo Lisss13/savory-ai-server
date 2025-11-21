@@ -27,3 +27,15 @@ type RegisterResponse struct {
 type ChangePasswordResponse struct {
 	Success bool `json:"success"`
 }
+
+// RequestPasswordResetResponse represents a response to a password reset request
+type RequestPasswordResetResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}
+
+// VerifyPasswordResetResponse represents a response to a password reset verification
+type VerifyPasswordResetResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}

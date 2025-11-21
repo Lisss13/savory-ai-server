@@ -16,6 +16,8 @@ type AuthController interface {
 	Login(c *fiber.Ctx) error
 	Register(c *fiber.Ctx) error
 	ChangePassword(c *fiber.Ctx) error
+	RequestPasswordReset(c *fiber.Ctx) error
+	VerifyPasswordReset(c *fiber.Ctx) error
 }
 
 // NewAuthController
@@ -92,6 +94,60 @@ func (ac *authController) ChangePassword(ctx *fiber.Ctx) error {
 	return response.Resp(ctx, response.Response{
 		Data:     res,
 		Messages: response.Messages{"Password changed successfully"},
+		Code:     fiber.StatusOK,
+	})
+}
+
+// RequestPasswordReset handles a request to reset a password
+func (ac *authController) RequestPasswordReset(ctx *fiber.Ctx) error {
+	// Parse request
+	req := new(payload.RequestPasswordResetRequest)
+	if err := response.ParseAndValidate(ctx, req); err != nil {
+		return response.Resp(ctx, response.Response{
+			Messages: response.Messages{err.Error()},
+			Code:     fiber.StatusBadRequest,
+		})
+	}
+
+	// Call service
+	res, err := ac.authService.RequestPasswordReset(*req)
+	if err != nil {
+		return response.Resp(ctx, response.Response{
+			Messages: response.Messages{err.Error()},
+			Code:     fiber.StatusInternalServerError,
+		})
+	}
+
+	return response.Resp(ctx, response.Response{
+		Data:     res,
+		Messages: response.Messages{"Password reset code sent if email exists"},
+		Code:     fiber.StatusOK,
+	})
+}
+
+// VerifyPasswordReset verifies a password reset code and sets a new password
+func (ac *authController) VerifyPasswordReset(ctx *fiber.Ctx) error {
+	// Parse request
+	req := new(payload.VerifyPasswordResetRequest)
+	if err := response.ParseAndValidate(ctx, req); err != nil {
+		return response.Resp(ctx, response.Response{
+			Messages: response.Messages{err.Error()},
+			Code:     fiber.StatusBadRequest,
+		})
+	}
+
+	// Call service
+	res, err := ac.authService.VerifyPasswordReset(*req)
+	if err != nil {
+		return response.Resp(ctx, response.Response{
+			Messages: response.Messages{err.Error()},
+			Code:     fiber.StatusBadRequest,
+		})
+	}
+
+	return response.Resp(ctx, response.Response{
+		Data:     res,
+		Messages: response.Messages{"Password reset successful"},
 		Code:     fiber.StatusOK,
 	})
 }

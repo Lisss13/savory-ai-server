@@ -40,3 +40,25 @@ Authorization: Bearer {{auth_token}}
   "oldPassword": "Qwerty12e",
   "newPassword": "NewPassword123"
 }
+
+### Request password reset
+# Sends a request to reset the password for a given email
+# If the email exists, a reset code will be sent (in a real app)
+POST http://localhost:4000/auth/request-password-reset
+Content-Type: application/json
+
+{
+  "email": "mironovq30@gmail.com"
+}
+
+### Verify password reset and set new password
+# Verifies the reset code and sets a new password
+# The code should be the one received after requesting a password reset
+POST http://localhost:4000/auth/verify-password-reset
+Content-Type: application/json
+
+{
+  "email": "mironovq30@gmail.com",
+  "code": "886306",
+  "newPassword": "NewSecurePassword123"
+}
