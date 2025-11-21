@@ -90,7 +90,7 @@ func (r *Router) Register() {
 	})
 
 	//Register routes of modules
-	r.AuthRouter.RegisterAuthRoutes()
+	r.AuthRouter.RegisterAuthRoutes(authRequired)
 	r.UserRouter.RegisterUserRouters(authRequired)
 	r.MenuCategoryRouter.RegisterMenuCategoryRoutes(authRequired)
 	r.DishRouter.RegisterDishRoutes(authRequired)
@@ -100,5 +100,5 @@ func (r *Router) Register() {
 	r.QuestionRouter.RegisterQuestionRoutes(authRequired)
 	r.RestaurantRouter.RegisterRestaurantRoutes(authRequired)
 	r.OrganizationRouter.RegisterOrganizationRoutes(authRequired)
-	r.ChatRouter.RegisterChatRoutes(authRequired)
+	r.ChatRouter.RegisterChatRoutes()
 }

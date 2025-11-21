@@ -27,7 +27,7 @@ var ChatModule = fx.Options(
 	fx.Provide(NewChatRouter),
 )
 
-func (r *ChatRouter) RegisterChatRoutes(auth fiber.Handler) {
+func (r *ChatRouter) RegisterChatRoutes() {
 	chatController := r.Controller.Chat
 	r.App.Route("/chat", func(router fiber.Router) {
 		// Table chat endpoints

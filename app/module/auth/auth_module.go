@@ -34,10 +34,11 @@ func NewAuthRouter(fiber *fiber.App, controller *controller.AuthControllerS) *Au
 }
 
 // RegisterAuthRoutes register routes of auth module
-func (ar *AuthRouter) RegisterAuthRoutes() {
+func (ar *AuthRouter) RegisterAuthRoutes(auth fiber.Handler) {
 	authController := ar.Controller.Auth
 	ar.App.Route("/auth", func(router fiber.Router) {
 		router.Post("/login", authController.Login)
 		router.Post("/register", authController.Register)
+		router.Post("/change-password", auth, authController.ChangePassword)
 	})
 }

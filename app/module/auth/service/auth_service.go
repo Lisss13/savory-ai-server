@@ -23,6 +23,7 @@ type authService struct {
 type AuthService interface {
 	Login(req payload.LoginRequest) (res payload.LoginResponse, err error)
 	Register(req payload.RegisterRequest) (res payload.RegisterResponse, err error)
+	ChangePassword(userID uint, req payload.ChangePasswordRequest) (res payload.ChangePasswordResponse, err error)
 }
 
 // AuthService
@@ -137,4 +138,31 @@ func (as *authService) Register(req payload.RegisterRequest) (res payload.Regist
 	res.Phone = user.Phone
 
 	return
+}
+
+func (as *authService) ChangePassword(userID uint, req payload.ChangePasswordRequest) (res payload.ChangePasswordResponse, err error) {
+	// Find user by ID
+	user, err := as.userRepo.FindUserByID(int64(userID))
+	if err != nil {
+		return payload.ChangePasswordResponse{Success: false}, errors.New("user not found")
+	}
+
+	// Verify old password
+	if !user.ComparePassword(req.OldPassword) {
+		return payload.ChangePasswordResponse{Success: false}, errors.New("old password is incorrect")
+	}
+
+	// Hash new password
+	bcryptPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return payload.ChangePasswordResponse{Success: false}, err
+	}
+
+	// Update password
+	err = as.userRepo.UpdatePassword(userID, string(bcryptPassword))
+	if err != nil {
+		return payload.ChangePasswordResponse{Success: false}, err
+	}
+
+	return payload.ChangePasswordResponse{Success: true}, nil
 }

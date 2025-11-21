@@ -14,6 +14,7 @@ type UserRepository interface {
 	FindUserByEmail(email string) (user *storage.User, err error)
 	CreateUser(user *storage.User) (res *storage.User, err error)
 	FindUserByID(id int64) (user *storage.User, err error)
+	UpdatePassword(userID uint, password string) error
 }
 
 func NewUserRepository(db *database.Database) UserRepository {
@@ -49,4 +50,11 @@ func (ur *userRepository) FindUserByID(id int64) (user *storage.User, err error)
 	}
 
 	return user, nil
+}
+
+func (ur *userRepository) UpdatePassword(userID uint, password string) error {
+	return ur.DB.DB.Model(&storage.User{}).
+		Where("id = ?", userID).
+		Update("password", password).
+		Error
 }

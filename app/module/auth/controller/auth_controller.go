@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"savory-ai-server/app/module/auth/payload"
 	"savory-ai-server/app/module/auth/service"
+	"savory-ai-server/utils/jwt"
 	"savory-ai-server/utils/response"
 )
 
@@ -14,6 +15,7 @@ type authController struct {
 type AuthController interface {
 	Login(c *fiber.Ctx) error
 	Register(c *fiber.Ctx) error
+	ChangePassword(c *fiber.Ctx) error
 }
 
 // NewAuthController
@@ -60,6 +62,36 @@ func (ac *authController) Register(ctx *fiber.Ctx) error {
 	return response.Resp(ctx, response.Response{
 		Data:     res,
 		Messages: response.Messages{"Register success"},
+		Code:     fiber.StatusOK,
+	})
+}
+
+// ChangePassword изменение пароля пользователя
+func (ac *authController) ChangePassword(ctx *fiber.Ctx) error {
+	// Get user ID from JWT token
+	user := ctx.Locals("user").(jwt.JWTData)
+
+	// Parse request
+	req := new(payload.ChangePasswordRequest)
+	if err := response.ParseAndValidate(ctx, req); err != nil {
+		return response.Resp(ctx, response.Response{
+			Messages: response.Messages{err.Error()},
+			Code:     fiber.StatusBadRequest,
+		})
+	}
+
+	// Call service
+	res, err := ac.authService.ChangePassword(user.ID, *req)
+	if err != nil {
+		return response.Resp(ctx, response.Response{
+			Messages: response.Messages{err.Error()},
+			Code:     fiber.StatusBadRequest,
+		})
+	}
+
+	return response.Resp(ctx, response.Response{
+		Data:     res,
+		Messages: response.Messages{"Password changed successfully"},
 		Code:     fiber.StatusOK,
 	})
 }

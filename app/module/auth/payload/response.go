@@ -23,3 +23,7 @@ type RegisterResponse struct {
 	Company string `json:"company"`
 	Phone   string `json:"phone"`
 }
+
+type ChangePasswordResponse struct {
+	Success bool `json:"success"`
+}

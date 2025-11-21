@@ -12,3 +12,8 @@ type RegisterRequest struct {
 	Phone       string `json:"phone" example:"+1234567890"`
 	Password    string `json:"password" example:"12345678" validate:"required,min=8,max=255"`
 }
+
+type ChangePasswordRequest struct {
+	OldPassword string `json:"oldPassword" example:"12345678" validate:"required,min=8,max=255"`
+	NewPassword string `json:"newPassword" example:"87654321" validate:"required,min=8,max=255"`
+}
