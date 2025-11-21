@@ -119,7 +119,19 @@ func ParseConfig(name string, debug ...bool) (*Config, error) {
 
 // initialize config
 func NewConfig() *Config {
-	config, err := ParseConfig("config")
+	// Check if CONFIG_FILE environment variable is set
+	configFile := os.Getenv("CONFIG_FILE")
+	var config *Config
+	var err error
+
+	if configFile != "" {
+		// If CONFIG_FILE is set, use it directly
+		config, err = ParseConfig(configFile, true)
+	} else {
+		// Otherwise, use the default config file
+		config, err = ParseConfig("config")
+	}
+
 	if err != nil && !fiber.IsChild() {
 		// panic if config is not found
 		log.Panic().Err(err).Msg("config not found")

@@ -1,8 +1,8 @@
 version: "3.8"
 
-#networks:
-#  app:
-#    driver: bridge
+networks:
+  app:
+    driver: bridge
 
 services:
   postgres:
@@ -15,19 +15,29 @@ services:
       - ../attic_db:/data/postgres
     ports:
       - "5432:5432"
-    #    networks:
-    #      - app
-#  example:
-#    build:
-#      context: .
-#      dockerfile: build/Dockerfile${CUSTOM}
-#    depends_on:
-#      - postgres
-#    links:
-#      - postgres
-#    volumes:
-#      - .:/app
-#    networks:
-#      - app
-#    ports:
-#      - "8080:8080"
+    networks:
+      - app
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U attic_admin -d attic_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - TZ=UTC
+      # Uncomment and modify the line below to use a custom configuration file
+#       - CONFIG_FILE=/app/config/custom-config.toml
+    volumes:
+      - ./config:/app/config
+      - ./storage:/app/storage
+    networks:
+      - app
+    ports:
+      - "4000:4000"
