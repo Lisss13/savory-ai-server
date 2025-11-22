@@ -32,8 +32,8 @@ COPY --from=builder /app/server /app/server
 # Copy the configuration file
 COPY config/config.docker.toml /app/config/config.toml
 
-COPY storage/selfsigned.crt /app/storage/selfsigned.crt
-COPY storage/selfsigned.key /app/storage/selfsigned.key
+#COPY storage/selfsigned.crt /app/storage/selfsigned.crt
+#COPY storage/selfsigned.key /app/storage/selfsigned.key
 
 # Copy the storage directory for static files
 COPY storage /app/storage
