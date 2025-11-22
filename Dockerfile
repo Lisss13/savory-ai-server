@@ -32,6 +32,9 @@ COPY --from=builder /app/server /app/server
 # Copy the configuration file
 COPY config/config.docker.toml /app/config/config.toml
 
+COPY storage/selfsigned.crt /app/storage/selfsigned.crt
+COPY storage/selfsigned.key /app/storage/selfsigned.key
+
 # Copy the storage directory for static files
 COPY storage /app/storage
 
@@ -41,4 +44,4 @@ EXPOSE 4000
 # Run the application
 # The CONFIG_FILE environment variable can be used to specify a custom config file
 ENV CONFIG_FILE="/app/config/config.toml"
-CMD ["/app/server"]
+CMD ["/app/server", "-migrate"]

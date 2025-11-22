@@ -99,6 +99,10 @@ services:
     environment:
       - CONFIG_FILE=/app/config/custom-config.toml
 ```
+delete all dockers 
+```bash
+docker stop $(docker ps -aq) && docker rm $(docker ps -aq) && docker rmi -f $(docker images -q)
+```
 
 Or when running with docker run:
 ```bash

@@ -4,7 +4,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -17,6 +16,7 @@ import (
 // app struct config
 type app = struct {
 	Name        string        `toml:"name"`
+	Host        string        `toml:"host"`
 	Port        string        `toml:"port"`
 	PrintRoutes bool          `toml:"print-routes"`
 	Prefork     bool          `toml:"prefork"`
@@ -127,6 +127,9 @@ func NewConfig() *Config {
 	if configFile != "" {
 		// If CONFIG_FILE is set, use it directly
 		config, err = ParseConfig(configFile, true)
+		if err != nil {
+			log.Error().Err(err).Msg("failed to parse config from CONFIG_FILE")
+		}
 	} else {
 		// Otherwise, use the default config file
 		config, err = ParseConfig("config")
@@ -138,13 +141,4 @@ func NewConfig() *Config {
 	}
 
 	return config
-}
-
-// func to parse address
-func ParseAddress(raw string) (host, port string) {
-	if i := strings.LastIndex(raw, ":"); i > 0 {
-		return raw[:i], raw[i+1:]
-	}
-
-	return raw, ""
 }

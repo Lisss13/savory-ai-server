@@ -1,4 +1,4 @@
-version: "3.8"
+version: "2.4"
 
 networks:
   app:
@@ -8,17 +8,17 @@ services:
   postgres:
     image: postgres:alpine
     environment:
-      POSTGRES_DB: attic_db
-      POSTGRES_USER: attic_admin
-      POSTGRES_PASSWORD: my_pass
+      POSTGRES_DB: savory_db
+      POSTGRES_USER: savory_admin
+      POSTGRES_PASSWORD: savory_password
     volumes:
-      - ../attic_db:/data/postgres
+      - ../savory_db:/data/postgres
     ports:
       - "5432:5432"
     networks:
       - app
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U attic_admin -d attic_db"]
+      test: ["CMD-SHELL", "pg_isready -U savory_admin -d savory_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -34,9 +34,9 @@ services:
       - TZ=UTC
       # Uncomment and modify the line below to use a custom configuration file
 #       - CONFIG_FILE=/app/config/custom-config.toml
-    volumes:
-      - ./config:/app/config
-      - ./storage:/app/storage
+#    volumes:
+#      - ./config:/app/config
+#      - ./storage:/app/storage
     networks:
       - app
     ports:

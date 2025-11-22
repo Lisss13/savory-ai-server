@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"net"
 	"os"
 	"runtime"
 	"savory-ai-server/app/middleware"
@@ -17,8 +18,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog"
 	"go.uber.org/fx"
-
-	futils "github.com/gofiber/fiber/v2/utils"
 )
 
 // initialize the webserver
@@ -65,26 +64,6 @@ func Start(
 				middlewares.Register()
 				router.Register()
 
-				// Custom Startup Messages
-				host, port := config.ParseAddress(cfg.App.Port)
-				if host == "" {
-					if fiber.Config().Network == "tcp6" {
-						host = "[::1]"
-					} else {
-						host = "0.0.0.0"
-					}
-				}
-
-				// ASCII Art
-				ascii, err := os.ReadFile("./storage/ascii_art.txt")
-				if err != nil {
-					log.Debug().Err(err).Msg("An unknown error occurred when to print ASCII art!")
-				}
-
-				for _, line := range strings.Split(futils.UnsafeString(ascii), "\n") {
-					log.Info().Msg(line)
-				}
-
 				// Information message
 				log.Info().Msg(fiber.Config().AppName + " is running at the moment!")
 
@@ -98,8 +77,8 @@ func Start(
 					}
 
 					log.Debug().Msgf("Version: %s", "-")
-					log.Debug().Msgf("Host: %s", host)
-					log.Debug().Msgf("Port: %s", port)
+					log.Debug().Msgf("Host: %s", cfg.App.Host)
+					log.Debug().Msgf("Port: %s", cfg.App.Port)
 					log.Debug().Msgf("Prefork: %s", prefork)
 					log.Debug().Msgf("Handlers: %d", fiber.HandlersCount())
 					log.Debug().Msgf("Processes: %d", procs)
@@ -115,9 +94,11 @@ func Start(
 					}
 				}
 
+				addr := net.JoinHostPort(cfg.App.Host, strings.TrimPrefix(cfg.App.Port, ":"))
+
 				go func() {
-					if err := fiber.Listen(cfg.App.Port); err != nil {
-						log.Error().Err(err).Msg("An unknown error occurred when to run server!")
+					if err := fiber.Listen(addr); err != nil {
+						log.Error().Err(err).Msg("An unknown error occurred when to run server 1!")
 					}
 				}()
 
@@ -129,6 +110,7 @@ func Start(
 
 				// read flag -migrate to migrate the storage
 				if *migrate {
+					log.Info().Msg("Migrating the storage...")
 					database.MigrateModels()
 				}
 				// read flag -seed to seed the storage
