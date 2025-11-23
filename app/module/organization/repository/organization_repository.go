@@ -30,6 +30,7 @@ func (or *organizationRepository) FindOrganizationByID(id uint) (*storage.Organi
 	err := or.DB.DB.
 		Preload("Admin").
 		Preload("Users").
+		Preload("Languages").
 		First(&org, "id = ?", id).
 		Error
 

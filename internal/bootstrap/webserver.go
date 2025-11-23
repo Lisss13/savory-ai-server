@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"savory-ai-server/app/middleware"
 	"savory-ai-server/app/router"
+	"savory-ai-server/app/storage"
 	"savory-ai-server/internal/bootstrap/database"
 	"savory-ai-server/utils/config"
 	"savory-ai-server/utils/response"
@@ -110,12 +111,13 @@ func Start(
 
 				// read flag -migrate to migrate the storage
 				if *migrate {
-					log.Info().Msg("Migrating the storage...")
 					database.MigrateModels()
 				}
 				// read flag -seed to seed the storage
 				if *seeder {
-					database.SeedModels()
+					database.SeedModels(
+						&storage.LanguageSeeder{DB: database.DB},
+					)
 				}
 
 				return nil

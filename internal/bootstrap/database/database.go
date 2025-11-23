@@ -2,6 +2,7 @@ package database
 
 import (
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"savory-ai-server/app/storage"
@@ -56,6 +57,7 @@ func (db *Database) ShutdownDatabase() {
 
 // migrate models
 func (db *Database) MigrateModels() {
+	log.Info().Msg("Migrating the storage...")
 	if err := db.DB.AutoMigrate(
 		Models()...,
 	); err != nil {
@@ -80,6 +82,8 @@ func Models() []any {
 		&storage.RestaurantChatSessions{},
 		&storage.RestaurantChatMessage{},
 		&storage.PasswordResetCode{},
+		&storage.Language{},
+		&storage.OrganizationLanguage{},
 	}
 }
 

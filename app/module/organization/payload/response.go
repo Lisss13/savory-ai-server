@@ -14,12 +14,13 @@ type UserInOrgResp struct {
 
 // OrganizationResp represents an organization response
 type OrganizationResp struct {
-	ID        uint          `json:"id"`
-	CreatedAt time.Time     `json:"created_at"`
-	Name      string        `json:"name"`
-	Phone     string        `json:"phone"`
-	Admin     UserInOrgResp `json:"admin"`
+	ID        uint            `json:"id"`
+	CreatedAt time.Time       `json:"created_at"`
+	Name      string          `json:"name"`
+	Phone     string          `json:"phone"`
+	Admin     UserInOrgResp   `json:"admin"`
 	Users     []UserInOrgResp `json:"users,omitempty"`
+	Languages []LanguageResp  `json:"languages"`
 }
 
 // OrganizationsResp represents a list of organizations

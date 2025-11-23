@@ -1,0 +1,76 @@
+### Language API
+# This file contains HTTP requests to test the language functionality of the Savory AI server.
+# The language API allows organizations to manage the languages they support.
+
+@host = http://localhost:4000
+
+### Get all languages
+# Retrieves all languages in the system
+# Response: List of languages with their IDs, codes, names, and descriptions
+GET {{host}}/languages
+Authorization: Bearer {{auth_token}}
+
+### Get language by ID
+# Retrieves a specific language by its ID
+# Response: Language details including ID, code, name, and description
+GET {{host}}/languages/1
+Authorization: Bearer {{auth_token}}
+
+### Create a new language
+# Creates a new language in the system
+# Response: Created language details
+POST {{host}}/languages
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "code": "ru",
+  "name": "Русский",
+  "description": "Русский язык"
+}
+
+### Update a language
+# Updates an existing language
+# Response: Updated language details
+PATCH {{host}}/languages/1
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "English (Updated)",
+  "description": "Updated description for English language"
+}
+
+### Delete a language
+# Deletes a language from the system
+# Response: Success message
+DELETE {{host}}/languages/2
+Authorization: Bearer {{auth_token}}
+
+### Get languages for an organization
+# Retrieves all languages associated with a specific organization
+# Response: List of languages for the organization
+GET {{host}}/organization/1/languages
+Authorization: Bearer {{auth_token}}
+
+### Add a language to an organization
+# Associates a language with an organization
+# Response: Success message
+POST {{host}}/organization/1/languages
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "languageId": 1
+}
+
+### Remove a language from an organization
+# Removes the association between a language and an organization
+# Response: Success message
+DELETE {{host}}/organization/1/languages
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "languageId": 2
+}

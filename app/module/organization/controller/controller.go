@@ -4,10 +4,12 @@ import "savory-ai-server/app/module/organization/service"
 
 type Controller struct {
 	Organization OrganizationController
+	Language     LanguageController
 }
 
-func NewControllers(service service.OrganizationService) *Controller {
+func NewControllers(orgService service.OrganizationService, langService service.LanguageService) *Controller {
 	return &Controller{
-		Organization: NewOrganizationController(service),
+		Organization: NewOrganizationController(orgService),
+		Language:     NewLanguageController(langService),
 	}
 }

@@ -125,5 +125,17 @@ func mapOrganizationToResponse(org *storage.Organization) *payload.OrganizationR
 		}
 	}
 
+	if len(org.Languages) > 0 {
+		resp.Languages = make([]payload.LanguageResp, 0, len(org.Languages))
+		for _, lang := range org.Languages {
+			resp.Languages = append(resp.Languages, payload.LanguageResp{
+				ID:          lang.ID,
+				Name:        lang.Name,
+				Code:        lang.Code,
+				Description: lang.Description,
+			})
+		}
+	}
+
 	return resp
 }
