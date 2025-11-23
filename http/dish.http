@@ -24,8 +24,8 @@ Content-Type: application/json
         client.assert(response.status === 200, "Expected status 200");
         client.assert(response.body.data.accessToken !== undefined, "Access token should be present");
     });
-    client.global.set("auth_token", response.body.data.accessToken);
-    client.global.set("organization_id", response.body.data.user.organization.id);
+    client.global.set("auth_token", response.body.data.token);
+    client.global.set("organization_id", response.body.data.organization.id);
 %}
 
 ### ------------------------------------------

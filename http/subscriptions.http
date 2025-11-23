@@ -1,0 +1,131 @@
+### ============================================
+### SUBSCRIPTION API - Positive Tests
+### ============================================
+
+### 1. Login
+# @name login
+POST http://localhost:4000/auth/login
+Content-Type: application/json
+
+{
+  "email": "mironovq30@gmail.com",
+  "password": "Qwerty12e"
+}
+
+> {%
+    client.global.set("auth_token", response.body.data.token);
+    client.global.set("organization_id", response.body.data.organization.id);
+%}
+
+### 2. Get all subscriptions
+GET http://localhost:4000/subscriptions
+Authorization: Bearer {{auth_token}}
+
+### 3. Create subscription for 1 month
+# @name createSubscription1Month
+POST http://localhost:4000/subscriptions
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "organizationId": {{organization_id}},
+  "period": 1,
+  "startDate": "2024-01-01T00:00:00Z"
+}
+
+> {%
+    client.global.set("subscription_1m_id", response.body.data.id);
+%}
+
+### 4. Create subscription for 6 months
+# @name createSubscription6Months
+POST http://localhost:4000/subscriptions
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "organizationId": {{organization_id}},
+  "period": 6,
+  "startDate": "2024-01-01T00:00:00Z"
+}
+
+> {%
+    client.global.set("subscription_6m_id", response.body.data.id);
+%}
+
+### 5. Create subscription for 12 months
+# @name createSubscription12Months
+POST http://localhost:4000/subscriptions
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "organizationId": {{organization_id}},
+  "period": 12,
+  "startDate": "2024-01-01T00:00:00Z"
+}
+
+> {%
+    client.global.set("subscription_12m_id", response.body.data.id);
+%}
+
+### 6. Get subscription by ID
+GET http://localhost:4000/subscriptions/{{subscription_12m_id}}
+Authorization: Bearer {{auth_token}}
+
+### 7. Get subscriptions by organization ID
+GET http://localhost:4000/subscriptions/organization/{{organization_id}}
+Authorization: Bearer {{auth_token}}
+
+### 8. Get active subscription by organization ID
+GET http://localhost:4000/subscriptions/organization/{{organization_id}}/active
+Authorization: Bearer {{auth_token}}
+
+### 9. Update subscription - change period
+PUT http://localhost:4000/subscriptions/{{subscription_12m_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "period": 24,
+  "startDate": "2024-02-01T00:00:00Z",
+  "isActive": true
+}
+
+### 10. Extend subscription - add 3 more months
+POST http://localhost:4000/subscriptions/{{subscription_12m_id}}/extend
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "period": 3
+}
+
+### 11. Extend subscription - add 6 more months
+POST http://localhost:4000/subscriptions/{{subscription_12m_id}}/extend
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "period": 6
+}
+
+### 12. Deactivate subscription
+POST http://localhost:4000/subscriptions/{{subscription_1m_id}}/deactivate
+Authorization: Bearer {{auth_token}}
+
+### 13. Get subscription after deactivation
+GET http://localhost:4000/subscriptions/{{subscription_1m_id}}
+Authorization: Bearer {{auth_token}}
+
+### 14. Delete subscription
+DELETE http://localhost:4000/subscriptions/{{subscription_1m_id}}
+Authorization: Bearer {{auth_token}}
+
+### 15. Delete 6 month subscription
+DELETE http://localhost:4000/subscriptions/{{subscription_6m_id}}
+Authorization: Bearer {{auth_token}}
+
+### 16. Delete 12 month subscription
+DELETE http://localhost:4000/subscriptions/{{subscription_12m_id}}
+Authorization: Bearer {{auth_token}}

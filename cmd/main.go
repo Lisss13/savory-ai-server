@@ -13,6 +13,7 @@ import (
 	qrcode "savory-ai-server/app/module/qr_code"
 	"savory-ai-server/app/module/question"
 	"savory-ai-server/app/module/restaurant"
+	"savory-ai-server/app/module/subscription"
 	"savory-ai-server/app/module/table"
 	"savory-ai-server/app/module/user"
 	"savory-ai-server/app/router"
@@ -49,6 +50,7 @@ func main() {
 		restaurant.RestaurantModule,
 		organization.OrganizationModuler,
 		chat.ChatModule,
+		subscription.SubscriptionModule,
 
 		// start aplication
 		fx.Invoke(bootstrap.Start),
