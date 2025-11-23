@@ -10,4 +10,6 @@ type Question struct {
 	OrganizationID uint         `gorm:"column:organization_id;not null" json:"organization_id"`
 	Organization   Organization `gorm:"foreignKey:OrganizationID" json:"organization"`
 	Text           string       `gorm:"column:text;not null" json:"text"`
+	LanguageID     *uint        `gorm:"column:language_id" json:"language_id"`
+	Language       *Language    `gorm:"foreignKey:LanguageID" json:"language"`
 }

@@ -31,7 +31,9 @@ func (r *QuestionRouter) RegisterQuestionRoutes(auth fiber.Handler) {
 	questionController := r.Controller.Question
 	r.App.Route("/questions", func(router fiber.Router) {
 		router.Get("/", auth, questionController.GetAll)
+		router.Get("/language/:code", auth, questionController.GetByLanguage)
 		router.Post("/", auth, questionController.Create)
+		router.Put("/:id", auth, questionController.Update)
 		router.Delete("/:id", auth, questionController.Delete)
 	})
 }

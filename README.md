@@ -115,18 +115,77 @@ The API documentation is available in the `http` directory, which contains HTTP 
 
 ## Project Structure
 
-- **app**: Application code
-  - **middleware**: Middleware components
-  - **module**: Business logic modules
-  - **router**: API routes
-  - **storage**: Database models
-- **cmd**: Application entry point
-- **config**: Configuration files
-- **http**: HTTP request examples
-- **internal**: Internal packages
-- **storage**: Static files and uploads
-- **utils**: Utility functions
+```
+server/
+├── cmd/main.go              # Entry point (Uber FX for DI)
+├── app/
+│   ├── middleware/          # HTTP middleware (CORS, JWT, Rate Limit)
+│   ├── module/              # 11 business modules
+│   ├── router/              # API route registration
+│   └── storage/             # GORM database models
+├── internal/bootstrap/      # Application initialization
+│   └── database/            # PostgreSQL connection
+├── utils/                   # Utilities (config, jwt, response, helpers)
+├── config/                  # TOML configurations
+├── http/                    # API request examples
+└── storage/public/          # Static files (images, QR codes)
+```
 
-## License
+### Business Modules (11 total)
 
-[License information]
+Each module follows the MVC pattern:
+
+| Module | Description |
+|--------|-------------|
+| **auth** | Authentication & registration |
+| **user** | User management |
+| **organization** | Organization management |
+| **restaurant** | Restaurant information |
+| **menu_category** | Menu categories |
+| **dish** | Menu dishes |
+| **table** | Restaurant tables |
+| **question** | Questions (with multilingual support) |
+| **qr_code** | QR code generation |
+| **file_upload** | File upload service |
+| **chat** | Chat functionality |
+
+### Module Structure
+
+Each module follows this structure:
+
+```
+module/
+├── {module}_module.go       # Module initialization & DI
+├── controller/
+│   └── {module}_controller.go   # HTTP request handlers
+├── service/
+│   └── {module}_service.go      # Business logic
+├── repository/
+│   └── {module}_repository.go   # Data access layer
+└── payload/
+    ├── request.go               # Request DTOs
+    └── response.go              # Response DTOs
+```
+
+### Technology Stack
+
+| Technology | Purpose |
+|------------|---------|
+| **Fiber v2** | Web framework |
+| **GORM** | ORM for PostgreSQL |
+| **Uber FX** | Dependency injection |
+| **JWT** | Authentication |
+| **Zerolog** | Structured logging |
+| **Docker** | Containerization |
+| **go-validator** | Request validation |
+| **go-qrcode** | QR code generation |
+
+### Architecture Patterns
+
+- **Clean Architecture** - Separation of concerns
+- **Repository Pattern** - Data access abstraction
+- **Service Layer** - Business logic isolation
+- **DTO Pattern** - Request/Response objects
+- **Dependency Injection** - Using Uber FX
+- **Middleware Pattern** - Fiber middleware composition
+
