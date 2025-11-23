@@ -84,6 +84,7 @@ func Models() []any {
 		&storage.PasswordResetCode{},
 		&storage.Language{},
 		&storage.OrganizationLanguage{},
+		&storage.Allergen{},
 	}
 }
 

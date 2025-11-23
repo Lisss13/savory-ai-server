@@ -447,12 +447,12 @@ db.Where("id IN ?", ids).Find(&items)
 ## Модули проекта
 
 | Модуль | Описание | Основные endpoints |
-|--------|----------|-------------------|
+|--------|----------|--------------|
 | auth | Аутентификация | POST /auth/login, POST /auth/register |
 | user | Пользователи | GET/POST/PATCH /user |
 | organization | Организации | /organizations |
 | restaurant | Рестораны | /restaurants |
-| menu_category | Категории меню | /menu-categories |
+| menu_category | Категории меню | /categories |
 | dish | Блюда | /dishes |
 | table | Столы | /tables |
 | question | Вопросы (мультиязычные) | /questions |
@@ -495,3 +495,7 @@ router.Get("/public", ctrl.PublicEndpoint)
 - Не запускай сервер без миграций в продакшене!
 - Не запускай go build после того как внес изменения в зависимости или поменяешь код
 - Не запускай go run после того как внес изменения в зависимости или поменяешь код
+
+## Правила вывода
+- При изменении файлов показывай только список изменённых файлов, без содержимого
+- Не выводи snippets кода после редактирования

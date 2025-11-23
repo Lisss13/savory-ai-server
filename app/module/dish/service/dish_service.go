@@ -116,6 +116,15 @@ func (s *dishService) Create(req *payload.CreateDishReq, organizationID uint) (*
 		})
 	}
 
+	// Create allergens
+	var allergens []*storage.Allergen
+	for _, allergenReq := range req.Allergens {
+		allergens = append(allergens, &storage.Allergen{
+			Name:        allergenReq.Name,
+			Description: allergenReq.Description,
+		})
+	}
+
 	// Create a dish
 	dish := &storage.Dish{
 		OrganizationID: organizationID,
@@ -125,6 +134,7 @@ func (s *dishService) Create(req *payload.CreateDishReq, organizationID uint) (*
 		Description:    req.Description,
 		Image:          req.Image,
 		Ingredients:    ingredients,
+		Allergens:      allergens,
 	}
 
 	createdDish, err := s.dishRepo.Create(dish)
@@ -153,6 +163,16 @@ func (s *dishService) Update(id uint, req *payload.UpdateDishReq, organizationID
 		})
 	}
 
+	// Create allergens
+	var allergens []*storage.Allergen
+	for _, allergenReq := range req.Allergens {
+		allergens = append(allergens, &storage.Allergen{
+			DishID:      id,
+			Name:        allergenReq.Name,
+			Description: allergenReq.Description,
+		})
+	}
+
 	// Update dish
 	existingDish.OrganizationID = organizationID
 	existingDish.MenuCategoryID = req.MenuCategoryID
@@ -161,6 +181,7 @@ func (s *dishService) Update(id uint, req *payload.UpdateDishReq, organizationID
 	existingDish.Description = req.Description
 	existingDish.Image = req.Image
 	existingDish.Ingredients = ingredients
+	existingDish.Allergens = allergens
 
 	updatedDish, err := s.dishRepo.Update(existingDish)
 	if err != nil {
@@ -207,6 +228,16 @@ func mapDishToResponse(dish *storage.Dish) payload.DishResp {
 		})
 	}
 
+	// Map allergens
+	var allergenResps []payload.AllergenResp
+	for _, allergen := range dish.Allergens {
+		allergenResps = append(allergenResps, payload.AllergenResp{
+			ID:          allergen.ID,
+			Name:        allergen.Name,
+			Description: allergen.Description,
+		})
+	}
+
 	// Map menu category
 	menuCategoryResp := payload.MenuCategoryResp{
 		ID:   dish.MenuCategory.ID,
@@ -231,5 +262,6 @@ func mapDishToResponse(dish *storage.Dish) payload.DishResp {
 		Description:  dish.Description,
 		Image:        dish.Image,
 		Ingredients:  ingredientResps,
+		Allergens:    allergenResps,
 	}
 }

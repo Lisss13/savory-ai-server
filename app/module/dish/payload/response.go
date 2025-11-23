@@ -11,6 +11,14 @@ type IngredientResp struct {
 	Quantity float64 `json:"quantity"`
 }
 
+// AllergenResp represents an allergen in a dish response
+// Содержит информацию об аллергене для отображения гостям
+type AllergenResp struct {
+	ID          uint   `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+}
+
 // OrganizationResp represents an organization in a dish response
 type OrganizationResp struct {
 	ID    uint   `json:"id"`
@@ -35,6 +43,7 @@ type DishResp struct {
 	Description  string           `json:"description"`
 	Image        string           `json:"image"`
 	Ingredients  []IngredientResp `json:"ingredients"`
+	Allergens    []AllergenResp   `json:"allergens"`
 }
 
 // DishesResp represents a list of dishes in a response

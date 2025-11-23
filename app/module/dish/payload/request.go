@@ -6,6 +6,13 @@ type IngredientReq struct {
 	Quantity float64 `json:"quantity" validate:"required"`
 }
 
+// AllergenReq represents an allergen in a dish request
+// Используется для указания аллергенов при создании/обновлении блюда
+type AllergenReq struct {
+	Name        string `json:"name" validate:"required"`
+	Description string `json:"description"`
+}
+
 // CreateDishReq represents a request to create a new dish
 type CreateDishReq struct {
 	MenuCategoryID uint            `json:"menuCategoryId" validate:"required"`
@@ -14,6 +21,7 @@ type CreateDishReq struct {
 	Description    string          `json:"description"`
 	Image          string          `json:"image"`
 	Ingredients    []IngredientReq `json:"ingredients" validate:"required,dive"`
+	Allergens      []AllergenReq   `json:"allergens,omitempty" validate:"omitempty,dive"`
 }
 
 // UpdateDishReq represents a request to update an existing dish
@@ -24,4 +32,5 @@ type UpdateDishReq struct {
 	Description    string          `json:"description"`
 	Image          string          `json:"image"`
 	Ingredients    []IngredientReq `json:"ingredients" validate:"required,dive"`
+	Allergens      []AllergenReq   `json:"allergens,omitempty" validate:"omitempty,dive"`
 }

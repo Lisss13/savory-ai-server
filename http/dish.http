@@ -1,97 +1,810 @@
-### Dishes
+### ============================================
+### DISH API TESTS
+### ============================================
+### Комплексное тестирование API для работы с блюдами
+### Включает тестирование ингредиентов и аллергенов
+### ============================================
 
-###
-GET http://localhost:4000/dishes
+### ------------------------------------------
+### SECTION 1: AUTHENTICATION
+### ------------------------------------------
+
+### 1.1 Login to get auth token
+# @name login
+POST http://localhost:4000/auth/login
+Content-Type: application/json
+
+{
+  "email": "mironovq30@gmail.com",
+  "password": "Qwerty12e"
+}
+
+> {%
+    client.test("Login successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+        client.assert(response.body.data.accessToken !== undefined, "Access token should be present");
+    });
+    client.global.set("auth_token", response.body.data.accessToken);
+    client.global.set("organization_id", response.body.data.user.organization.id);
+%}
+
+### ------------------------------------------
+### SECTION 2: SETUP - Get Menu Categories
+### ------------------------------------------
+
+### 2.1 Get all menu categories to use in dish creation
+# @name getCategories
+GET http://localhost:4000/categories
 Authorization: Bearer {{auth_token}}
 
-###
-GET http://localhost:4000/dishes/category
-Authorization: Bearer {{auth_token}}
+> {%
+    client.test("Get categories successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+        client.assert(response.body.data.menuCategories.length > 0, "Should have categories");
+    });
+    if (response.body.data.menuCategories.length > 0) {
+        client.global.set("category_id", response.body.data.menuCategories[0].id);
+        client.global.set("category_name", response.body.data.menuCategories[0].name);
+    }
+%}
 
-###
-# @name createDish
+### ------------------------------------------
+### SECTION 3: CREATE DISH TESTS
+### ------------------------------------------
+
+### 3.1 Create dish with ingredients only (no allergens)
+# @name createDishNoAllergens
 POST http://localhost:4000/dishes
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 {
-  "menuCategoryId": 3,
-  "name": "Bruschetta",
+  "menuCategoryId": {{category_id}},
+  "name": "Classic Bruschetta",
   "price": 8.99,
-  "description": "Toasted bread topped with tomatoes, garlic, and basil",
+  "description": "Traditional Italian appetizer with tomatoes and basil",
   "image": "https://example.com/bruschetta.jpg",
   "ingredients": [
-    {
-      "name": "Bread",
-      "quantity": 2
-    },
-    {
-      "name": "Tomatoes",
-      "quantity": 3
-    },
-    {
-      "name": "Garlic",
-      "quantity": 2
-    },
-    {
-      "name": "Basil",
-      "quantity": 5
-    }
+    {"name": "Ciabatta Bread", "quantity": 2},
+    {"name": "Fresh Tomatoes", "quantity": 3},
+    {"name": "Garlic", "quantity": 2},
+    {"name": "Fresh Basil", "quantity": 5},
+    {"name": "Olive Oil", "quantity": 1}
   ]
 }
 
-###
-GET http://localhost:4000/dishes/1
+> {%
+    client.test("Create dish without allergens successful", function() {
+        client.assert(response.status === 201, "Expected status 201");
+        client.assert(response.body.data.name === "Classic Bruschetta", "Name should match");
+        client.assert(response.body.data.ingredients.length === 5, "Should have 5 ingredients");
+        client.assert(response.body.data.allergens.length === 0, "Should have no allergens");
+    });
+    client.global.set("dish_no_allergens_id", response.body.data.id);
+%}
+
+### 3.2 Create dish with ingredients and allergens
+# @name createDishWithAllergens
+POST http://localhost:4000/dishes
+Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
-###
-# @name updateDish
-PUT http://localhost:4000/dishes/1
+{
+  "menuCategoryId": {{category_id}},
+  "name": "Shrimp Pasta Alfredo",
+  "price": 18.99,
+  "description": "Creamy fettuccine with garlic shrimp",
+  "image": "https://example.com/shrimp-pasta.jpg",
+  "ingredients": [
+    {"name": "Fettuccine Pasta", "quantity": 200},
+    {"name": "Shrimp", "quantity": 150},
+    {"name": "Heavy Cream", "quantity": 100},
+    {"name": "Parmesan Cheese", "quantity": 50},
+    {"name": "Garlic", "quantity": 3},
+    {"name": "Butter", "quantity": 30}
+  ],
+  "allergens": [
+    {"name": "Shellfish", "description": "Contains shrimp"},
+    {"name": "Dairy", "description": "Contains cream, cheese, and butter"},
+    {"name": "Gluten", "description": "Contains wheat pasta"}
+  ]
+}
+
+> {%
+    client.test("Create dish with allergens successful", function() {
+        client.assert(response.status === 201, "Expected status 201");
+        client.assert(response.body.data.name === "Shrimp Pasta Alfredo", "Name should match");
+        client.assert(response.body.data.ingredients.length === 6, "Should have 6 ingredients");
+        client.assert(response.body.data.allergens.length === 3, "Should have 3 allergens");
+    });
+    client.global.set("dish_with_allergens_id", response.body.data.id);
+%}
+
+### 3.3 Create dish with many allergens
+# @name createDishManyAllergens
+POST http://localhost:4000/dishes
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "menuCategoryId": {{category_id}},
+  "name": "Sesame Peanut Noodles",
+  "price": 14.99,
+  "description": "Asian-style noodles with sesame and peanut sauce",
+  "image": "https://example.com/peanut-noodles.jpg",
+  "ingredients": [
+    {"name": "Egg Noodles", "quantity": 200},
+    {"name": "Peanut Butter", "quantity": 50},
+    {"name": "Sesame Oil", "quantity": 20},
+    {"name": "Soy Sauce", "quantity": 30},
+    {"name": "Sesame Seeds", "quantity": 10}
+  ],
+  "allergens": [
+    {"name": "Peanuts", "description": "Contains peanut butter"},
+    {"name": "Sesame", "description": "Contains sesame oil and seeds"},
+    {"name": "Gluten", "description": "Contains wheat noodles"},
+    {"name": "Eggs", "description": "Noodles contain eggs"},
+    {"name": "Soy", "description": "Contains soy sauce"}
+  ]
+}
+
+> {%
+    client.test("Create dish with many allergens successful", function() {
+        client.assert(response.status === 201, "Expected status 201");
+        client.assert(response.body.data.allergens.length === 5, "Should have 5 allergens");
+    });
+    client.global.set("dish_many_allergens_id", response.body.data.id);
+%}
+
+### 3.4 Create dish - validation error (missing required fields)
+POST http://localhost:4000/dishes
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Incomplete Dish"
+}
+
+> {%
+    client.test("Validation error for missing fields", function() {
+        client.assert(response.status === 400, "Expected status 400");
+    });
+%}
+
+### 3.5 Create dish - validation error (empty ingredients)
+POST http://localhost:4000/dishes
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "menuCategoryId": {{category_id}},
+  "name": "No Ingredients Dish",
+  "price": 9.99,
+  "ingredients": []
+}
+
+> {%
+    client.test("Validation error for empty ingredients", function() {
+        client.assert(response.status === 400, "Expected status 400");
+    });
+%}
+
+### ------------------------------------------
+### SECTION 4: GET DISH TESTS
+### ------------------------------------------
+
+### 4.1 Get all dishes
+# @name getAllDishes
+GET http://localhost:4000/dishes
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Get all dishes successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+        client.assert(Array.isArray(response.body.data.dishes), "Dishes should be array");
+    });
+%}
+
+### 4.2 Get dishes by menu category
+# @name getDishesByCategory
+GET http://localhost:4000/dishes/category
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Get dishes by category successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+        client.assert(Array.isArray(response.body.data.dishes), "Dishes should be array of categories");
+    });
+%}
+
+### 4.3 Get dish by ID (with allergens)
+# @name getDishWithAllergens
+GET http://localhost:4000/dishes/{{dish_with_allergens_id}}
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Get dish by ID successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+        client.assert(response.body.data.id === client.global.get("dish_with_allergens_id"), "ID should match");
+        client.assert(response.body.data.allergens.length === 3, "Should have 3 allergens");
+    });
+%}
+
+### 4.4 Get dish by ID (without allergens)
+# @name getDishNoAllergens
+GET http://localhost:4000/dishes/{{dish_no_allergens_id}}
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Get dish without allergens", function() {
+        client.assert(response.status === 200, "Expected status 200");
+        client.assert(response.body.data.allergens.length === 0, "Should have no allergens");
+    });
+%}
+
+### 4.5 Get dish by ID - not found
+GET http://localhost:4000/dishes/999999
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Dish not found error", function() {
+        client.assert(response.status === 404 || response.status === 500, "Expected error status");
+    });
+%}
+
+### ------------------------------------------
+### SECTION 5: UPDATE DISH TESTS
+### ------------------------------------------
+
+### 5.1 Update dish - change basic info
+# @name updateDishBasic
+PUT http://localhost:4000/dishes/{{dish_no_allergens_id}}
 Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 {
-  "menu_category_id": {{category_id}},
-  "name": "Bruschetta Deluxe 3",
+  "menuCategoryId": {{category_id}},
+  "name": "Classic Bruschetta Deluxe",
   "price": 10.99,
-  "description": "Toasted bread topped with premium tomatoes, garlic, and fresh basil",
+  "description": "Premium Italian appetizer with heirloom tomatoes",
   "image": "https://example.com/bruschetta-deluxe.jpg",
-    "ingredients": [
-    {
-      "name": "Bread 1",
-      "quantity": 3
-    },
-    {
-      "name": "Tomatoes 1",
-      "quantity": 4
-    },
-    {
-      "name": "Garlic 1",
-      "quantity": 3
-    },
-    {
-      "name": "Basil 1",
-      "quantity": 6
-    }
+  "ingredients": [
+    {"name": "Artisan Bread", "quantity": 2},
+    {"name": "Heirloom Tomatoes", "quantity": 4},
+    {"name": "Roasted Garlic", "quantity": 3},
+    {"name": "Fresh Basil", "quantity": 8},
+    {"name": "Extra Virgin Olive Oil", "quantity": 2}
   ]
 }
 
+> {%
+    client.test("Update dish basic info successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+        client.assert(response.body.data.name === "Classic Bruschetta Deluxe", "Name should be updated");
+        client.assert(response.body.data.price === 10.99, "Price should be updated");
+    });
+%}
 
-###
-DELETE http://localhost:4000/dishes/{{dish_id}}
+### 5.2 Update dish - add allergens to dish that had none
+# @name updateDishAddAllergens
+PUT http://localhost:4000/dishes/{{dish_no_allergens_id}}
 Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
-### Dish of the Day
+{
+  "menuCategoryId": {{category_id}},
+  "name": "Classic Bruschetta Deluxe",
+  "price": 10.99,
+  "description": "Premium Italian appetizer with heirloom tomatoes",
+  "image": "https://example.com/bruschetta-deluxe.jpg",
+  "ingredients": [
+    {"name": "Artisan Bread", "quantity": 2},
+    {"name": "Heirloom Tomatoes", "quantity": 4},
+    {"name": "Roasted Garlic", "quantity": 3},
+    {"name": "Fresh Basil", "quantity": 8}
+  ],
+  "allergens": [
+    {"name": "Gluten", "description": "Contains wheat bread"}
+  ]
+}
 
-###
-# Get the current dish of the day
+> {%
+    client.test("Add allergens to dish successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+        client.assert(response.body.data.allergens.length === 1, "Should have 1 allergen now");
+        client.assert(response.body.data.allergens[0].name === "Gluten", "Allergen name should match");
+    });
+%}
+
+### 5.3 Update dish - modify allergens
+# @name updateDishModifyAllergens
+PUT http://localhost:4000/dishes/{{dish_with_allergens_id}}
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_id}},
+  "name": "Shrimp Pasta Alfredo",
+  "price": 19.99,
+  "description": "Creamy fettuccine with garlic shrimp - Updated recipe",
+  "image": "https://example.com/shrimp-pasta-v2.jpg",
+  "ingredients": [
+    {"name": "Gluten-Free Pasta", "quantity": 200},
+    {"name": "Wild Shrimp", "quantity": 200},
+    {"name": "Coconut Cream", "quantity": 100},
+    {"name": "Garlic", "quantity": 4}
+  ],
+  "allergens": [
+    {"name": "Shellfish", "description": "Contains wild shrimp"},
+    {"name": "Coconut", "description": "Contains coconut cream"}
+  ]
+}
+
+> {%
+    client.test("Modify allergens successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+        client.assert(response.body.data.allergens.length === 2, "Should have 2 allergens now");
+        client.assert(response.body.data.price === 19.99, "Price should be updated");
+    });
+%}
+
+### 5.4 Update dish - remove all allergens
+# @name updateDishRemoveAllergens
+PUT http://localhost:4000/dishes/{{dish_with_allergens_id}}
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_id}},
+  "name": "Shrimp Pasta Alfredo",
+  "price": 19.99,
+  "description": "Creamy fettuccine with garlic shrimp",
+  "image": "https://example.com/shrimp-pasta.jpg",
+  "ingredients": [
+    {"name": "Fettuccine Pasta", "quantity": 200},
+    {"name": "Shrimp", "quantity": 150}
+  ],
+  "allergens": []
+}
+
+> {%
+    client.test("Remove allergens successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+        client.assert(response.body.data.allergens.length === 0, "Should have no allergens");
+    });
+%}
+
+### 5.5 Update dish - restore allergens for further tests
+PUT http://localhost:4000/dishes/{{dish_with_allergens_id}}
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_id}},
+  "name": "Shrimp Pasta Alfredo",
+  "price": 18.99,
+  "description": "Creamy fettuccine with garlic shrimp",
+  "image": "https://example.com/shrimp-pasta.jpg",
+  "ingredients": [
+    {"name": "Fettuccine Pasta", "quantity": 200},
+    {"name": "Shrimp", "quantity": 150},
+    {"name": "Heavy Cream", "quantity": 100}
+  ],
+  "allergens": [
+    {"name": "Shellfish", "description": "Contains shrimp"},
+    {"name": "Dairy", "description": "Contains cream"}
+  ]
+}
+
+> {%
+    client.test("Restore allergens successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+%}
+
+### 5.6 Update dish - not found
+PUT http://localhost:4000/dishes/999999
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_id}},
+  "name": "Non-existent Dish",
+  "price": 9.99,
+  "ingredients": [
+    {"name": "Test", "quantity": 1}
+  ]
+}
+
+> {%
+    client.test("Update non-existent dish error", function() {
+        client.assert(response.status === 404 || response.status === 500, "Expected error status");
+    });
+%}
+
+### ------------------------------------------
+### SECTION 6: DISH OF THE DAY TESTS
+### ------------------------------------------
+
+### 6.1 Set dish of the day
+# @name setDishOfDay
+POST http://localhost:4000/dishes/{{dish_with_allergens_id}}/dish-of-day
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+> {%
+    client.test("Set dish of day successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+%}
+
+### 6.2 Get dish of the day
+# @name getDishOfDay
 GET http://localhost:4000/dishes/dish-of-day
 Authorization: Bearer {{auth_token}}
-Content-Type: application/json
 
-###
-# Set a dish as the dish of the day
-POST http://localhost:4000/dishes/1/dish-of-day
+> {%
+    client.test("Get dish of day successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+        client.assert(response.body.data.id === client.global.get("dish_with_allergens_id"), "Should be correct dish");
+    });
+%}
+
+### 6.3 Set different dish of the day
+POST http://localhost:4000/dishes/{{dish_no_allergens_id}}/dish-of-day
 Authorization: Bearer {{auth_token}}
 Content-Type: application/json
+
+> {%
+    client.test("Set different dish of day successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+%}
+
+### 6.4 Verify new dish of the day
+GET http://localhost:4000/dishes/dish-of-day
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("New dish of day is correct", function() {
+        client.assert(response.status === 200, "Expected status 200");
+        client.assert(response.body.data.id === client.global.get("dish_no_allergens_id"), "Should be updated dish");
+    });
+%}
+
+### 6.5 Set non-existent dish as dish of the day
+POST http://localhost:4000/dishes/999999/dish-of-day
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+> {%
+    client.test("Set non-existent dish of day error", function() {
+        client.assert(response.status === 404 || response.status === 500, "Expected error status");
+    });
+%}
+
+### ------------------------------------------
+### SECTION 7: AUTHENTICATION ERROR TESTS
+### ------------------------------------------
+
+### 7.1 Get dishes without token
+GET http://localhost:4000/dishes
+
+> {%
+    client.test("Unauthorized access denied", function() {
+        client.assert(response.status === 401, "Expected status 401");
+    });
+%}
+
+### 7.2 Create dish without token
+POST http://localhost:4000/dishes
+Content-Type: application/json
+
+{
+  "menuCategoryId": 1,
+  "name": "Unauthorized Dish",
+  "price": 9.99,
+  "ingredients": [{"name": "Test", "quantity": 1}]
+}
+
+> {%
+    client.test("Unauthorized create denied", function() {
+        client.assert(response.status === 401, "Expected status 401");
+    });
+%}
+
+### 7.3 Update dish without token
+PUT http://localhost:4000/dishes/1
+Content-Type: application/json
+
+{
+  "menuCategoryId": 1,
+  "name": "Unauthorized Update",
+  "price": 9.99,
+  "ingredients": [{"name": "Test", "quantity": 1}]
+}
+
+> {%
+    client.test("Unauthorized update denied", function() {
+        client.assert(response.status === 401, "Expected status 401");
+    });
+%}
+
+### 7.4 Delete dish without token
+DELETE http://localhost:4000/dishes/1
+
+> {%
+    client.test("Unauthorized delete denied", function() {
+        client.assert(response.status === 401, "Expected status 401");
+    });
+%}
+
+### 7.5 Access with invalid token
+GET http://localhost:4000/dishes
+Authorization: Bearer invalid_token_12345
+
+> {%
+    client.test("Invalid token denied", function() {
+        client.assert(response.status === 401, "Expected status 401");
+    });
+%}
+
+### ------------------------------------------
+### SECTION 8: EDGE CASES
+### ------------------------------------------
+
+### 8.1 Create dish with minimal data
+# @name createMinimalDish
+POST http://localhost:4000/dishes
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "menuCategoryId": {{category_id}},
+  "name": "Simple Salad",
+  "price": 5.99,
+  "ingredients": [
+    {"name": "Lettuce", "quantity": 100}
+  ]
+}
+
+> {%
+    client.test("Create minimal dish successful", function() {
+        client.assert(response.status === 201, "Expected status 201");
+        client.assert(response.body.data.description === "", "Description should be empty");
+        client.assert(response.body.data.image === "", "Image should be empty");
+    });
+    client.global.set("minimal_dish_id", response.body.data.id);
+%}
+
+### 8.2 Create dish with very long description
+# @name createLongDescDish
+POST http://localhost:4000/dishes
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "menuCategoryId": {{category_id}},
+  "name": "Gourmet Special",
+  "price": 29.99,
+  "description": "This is a very detailed description of our signature gourmet dish. It features the finest ingredients sourced from local farms and prepared with traditional techniques passed down through generations. Each element on the plate is carefully crafted to provide a harmonious balance of flavors and textures that will delight your palate. The dish begins with a foundation of organic vegetables, followed by our house-made sauce that brings everything together.",
+  "image": "https://example.com/gourmet.jpg",
+  "ingredients": [
+    {"name": "Premium Ingredient", "quantity": 1}
+  ]
+}
+
+> {%
+    client.test("Create dish with long description successful", function() {
+        client.assert(response.status === 201, "Expected status 201");
+    });
+    client.global.set("long_desc_dish_id", response.body.data.id);
+%}
+
+### 8.3 Create dish with zero price
+POST http://localhost:4000/dishes
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "menuCategoryId": {{category_id}},
+  "name": "Free Sample",
+  "price": 0,
+  "ingredients": [
+    {"name": "Sample", "quantity": 1}
+  ]
+}
+
+> {%
+    client.test("Create dish with zero price", function() {
+        // Может быть либо успех (если допускается) либо ошибка валидации
+        client.assert(response.status === 201 || response.status === 400, "Expected 201 or 400");
+    });
+    if (response.status === 201) {
+        client.global.set("free_dish_id", response.body.data.id);
+    }
+%}
+
+### 8.4 Create dish with decimal price
+# @name createDecimalPriceDish
+POST http://localhost:4000/dishes
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "menuCategoryId": {{category_id}},
+  "name": "Precision Priced Item",
+  "price": 12.345,
+  "ingredients": [
+    {"name": "Test", "quantity": 1}
+  ]
+}
+
+> {%
+    client.test("Create dish with decimal price", function() {
+        client.assert(response.status === 201, "Expected status 201");
+    });
+    client.global.set("decimal_price_dish_id", response.body.data.id);
+%}
+
+### 8.5 Create dish with special characters in name
+# @name createSpecialCharsDish
+POST http://localhost:4000/dishes
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "menuCategoryId": {{category_id}},
+  "name": "Crème Brûlée & Café",
+  "price": 8.99,
+  "description": "Classic French dessert with caramelized sugar",
+  "ingredients": [
+    {"name": "Eggs", "quantity": 4},
+    {"name": "Crème", "quantity": 200}
+  ],
+  "allergens": [
+    {"name": "Eggs", "description": "Contains eggs"},
+    {"name": "Dairy", "description": "Contains crème"}
+  ]
+}
+
+> {%
+    client.test("Create dish with special characters successful", function() {
+        client.assert(response.status === 201, "Expected status 201");
+        client.assert(response.body.data.name === "Crème Brûlée & Café", "Name with special chars preserved");
+    });
+    client.global.set("special_chars_dish_id", response.body.data.id);
+%}
+
+### 8.6 Create dish with Russian text
+# @name createRussianDish
+POST http://localhost:4000/dishes
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "menuCategoryId": {{category_id}},
+  "name": "Борщ украинский",
+  "price": 12.99,
+  "description": "Традиционный украинский суп со свеклой и сметаной",
+  "ingredients": [
+    {"name": "Свекла", "quantity": 200},
+    {"name": "Капуста", "quantity": 150},
+    {"name": "Картофель", "quantity": 100}
+  ],
+  "allergens": [
+    {"name": "Молочные продукты", "description": "Подается со сметаной"}
+  ]
+}
+
+> {%
+    client.test("Create dish with Russian text successful", function() {
+        client.assert(response.status === 201, "Expected status 201");
+        client.assert(response.body.data.name === "Борщ украинский", "Russian name preserved");
+    });
+    client.global.set("russian_dish_id", response.body.data.id);
+%}
+
+### ------------------------------------------
+### SECTION 9: CLEANUP
+### ------------------------------------------
+
+### 9.1 Delete dish without allergens
+DELETE http://localhost:4000/dishes/{{dish_no_allergens_id}}
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Delete dish without allergens successful", function() {
+        client.assert(response.status === 200 || response.status === 204, "Expected success status");
+    });
+%}
+
+### 9.2 Delete dish with allergens
+DELETE http://localhost:4000/dishes/{{dish_with_allergens_id}}
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Delete dish with allergens successful", function() {
+        client.assert(response.status === 200 || response.status === 204, "Expected success status");
+    });
+%}
+
+### 9.3 Delete dish with many allergens
+DELETE http://localhost:4000/dishes/{{dish_many_allergens_id}}
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Delete dish with many allergens successful", function() {
+        client.assert(response.status === 200 || response.status === 204, "Expected success status");
+    });
+%}
+
+### 9.4 Delete minimal dish
+DELETE http://localhost:4000/dishes/{{minimal_dish_id}}
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Delete minimal dish successful", function() {
+        client.assert(response.status === 200 || response.status === 204, "Expected success status");
+    });
+%}
+
+### 9.5 Delete long description dish
+DELETE http://localhost:4000/dishes/{{long_desc_dish_id}}
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Delete long desc dish successful", function() {
+        client.assert(response.status === 200 || response.status === 204, "Expected success status");
+    });
+%}
+
+### 9.6 Delete decimal price dish
+DELETE http://localhost:4000/dishes/{{decimal_price_dish_id}}
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Delete decimal price dish successful", function() {
+        client.assert(response.status === 200 || response.status === 204, "Expected success status");
+    });
+%}
+
+### 9.7 Delete special chars dish
+DELETE http://localhost:4000/dishes/{{special_chars_dish_id}}
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Delete special chars dish successful", function() {
+        client.assert(response.status === 200 || response.status === 204, "Expected success status");
+    });
+%}
+
+### 9.8 Delete Russian dish
+DELETE http://localhost:4000/dishes/{{russian_dish_id}}
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Delete Russian dish successful", function() {
+        client.assert(response.status === 200 || response.status === 204, "Expected success status");
+    });
+%}
+
+### 9.9 Delete already deleted dish
+DELETE http://localhost:4000/dishes/{{dish_no_allergens_id}}
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Delete already deleted dish error", function() {
+        client.assert(response.status === 404 || response.status === 500, "Expected error status");
+    });
+%}
+
+### 9.10 Verify dishes are deleted
+GET http://localhost:4000/dishes/{{dish_with_allergens_id}}
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Deleted dish not found", function() {
+        client.assert(response.status === 404 || response.status === 500, "Expected error status");
+    });
+%}

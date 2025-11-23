@@ -29,7 +29,7 @@ func NewDishRepository(db *database.Database) DishRepository {
 }
 
 func (r *dishRepository) FindAll() (dishes []*storage.Dish, err error) {
-	if err := r.DB.DB.Preload("Organization").Preload("MenuCategory").Preload("Ingredients").Find(&dishes).Error; err != nil {
+	if err := r.DB.DB.Preload("Organization").Preload("MenuCategory").Preload("Ingredients").Preload("Allergens").Find(&dishes).Error; err != nil {
 		return nil, err
 	}
 	return dishes, nil
@@ -40,6 +40,7 @@ func (r *dishRepository) FindByOrganizationID(organizationID uint) (dishes []*st
 		Preload("Organization").
 		Preload("MenuCategory").
 		Preload("Ingredients").
+		Preload("Allergens").
 		Where("organization_id = ?", organizationID).
 		Find(&dishes).Error
 
@@ -55,6 +56,7 @@ func (r *dishRepository) FindByID(id uint) (dish *storage.Dish, err error) {
 		Preload("Organization").
 		Preload("MenuCategory").
 		Preload("Ingredients").
+		Preload("Allergens").
 		First(&dish, "id = ?", id).
 		Error
 
@@ -87,21 +89,36 @@ func (r *dishRepository) Update(dish *storage.Dish) (res *storage.Dish, err erro
 		return nil, err
 	}
 
-	// If there are ingredients, handle them
-	if len(dish.Ingredients) > 0 {
-		// Delete existing ingredients
-		if err := r.DB.DB.Where("dish_id = ?", dish.ID).Delete(&storage.Ingredient{}).Error; err != nil {
-			return nil, err
-		}
+	// Handle ingredients update
+	// Delete existing ingredients
+	if err = r.DB.DB.Where("dish_id = ?", dish.ID).Delete(&storage.Ingredient{}).Error; err != nil {
+		return nil, err
+	}
 
-		// Set the dish ID for each ingredient
+	// Create new ingredients if provided
+	if len(dish.Ingredients) > 0 {
 		for _, ingredient := range dish.Ingredients {
 			ingredient.ID = 0 // Ensure new ingredients are created
 			ingredient.DishID = dish.ID
 		}
+		if err = r.DB.DB.Create(&dish.Ingredients).Error; err != nil {
+			return nil, err
+		}
+	}
 
-		// Create new ingredients
-		if err := r.DB.DB.Create(&dish.Ingredients).Error; err != nil {
+	// Handle allergens update
+	// Delete existing allergens
+	if err := r.DB.DB.Where("dish_id = ?", dish.ID).Delete(&storage.Allergen{}).Error; err != nil {
+		return nil, err
+	}
+
+	// Create new allergens if provided
+	if len(dish.Allergens) > 0 {
+		for _, allergen := range dish.Allergens {
+			allergen.ID = 0 // Ensure new allergens are created
+			allergen.DishID = dish.ID
+		}
+		if err := r.DB.DB.Create(&dish.Allergens).Error; err != nil {
 			return nil, err
 		}
 	}
@@ -116,6 +133,11 @@ func (r *dishRepository) Delete(id uint) error {
 		return err
 	}
 
+	// Delete all allergens
+	if err := r.DB.DB.Where("dish_id = ?", id).Delete(&storage.Allergen{}).Error; err != nil {
+		return err
+	}
+
 	// Then delete the dish
 	return r.DB.DB.Delete(&storage.Dish{}, id).Error
 }
@@ -125,6 +147,7 @@ func (r *dishRepository) FindDishOfDay(companyID uint) (dish *storage.Dish, err 
 		Preload("Organization").
 		Preload("MenuCategory").
 		Preload("Ingredients").
+		Preload("Allergens").
 		Where("is_dish_of_day = ?", true).
 		Where("organization_id = ?", companyID).
 		First(&dish).
@@ -155,7 +178,7 @@ func (r *dishRepository) SetDishOfDay(id uint) (dish *storage.Dish, err error) {
 		Where("id = ?", id).
 		Update("is_dish_of_day", true).
 		Error
-	
+
 	if err != nil {
 		return nil, err
 	}
