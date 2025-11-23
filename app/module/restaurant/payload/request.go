@@ -16,6 +16,7 @@ type CreateRestaurantReq struct {
 	Website        string           `json:"website"`
 	Description    string           `json:"description"`
 	ImageURL       string           `json:"image_url"`
+	Menu           string           `json:"menu,omitempty"`
 	WorkingHours   []WorkingHourReq `json:"working_hours" validate:"required"`
 }
 
@@ -28,4 +29,5 @@ type UpdateRestaurantReq struct {
 	Website        string `json:"website"`
 	Description    string `json:"description"`
 	ImageURL       string `json:"image_url"`
+	Menu           string `json:"menu,omitempty"`
 }

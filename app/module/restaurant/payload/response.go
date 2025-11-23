@@ -28,6 +28,7 @@ type RestaurantResp struct {
 	Website      string            `json:"website"`
 	Description  string            `json:"description"`
 	ImageURL     string            `json:"image_url"`
+	Menu         string            `json:"menu,omitempty"`
 	WorkingHours []WorkingHourResp `json:"working_hours"`
 }
 

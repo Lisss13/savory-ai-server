@@ -76,6 +76,7 @@ func (s *tableService) Create(req *payload.CreateTableReq) (*payload.TableResp, 
 		RestaurantID: req.RestaurantID,
 		Name:         req.Name,
 		GuestCount:   req.GuestCount,
+		Menu:         req.Menu,
 	}
 
 	createdTable, err := s.tableRepo.Create(table)
@@ -102,6 +103,7 @@ func (s *tableService) Update(id uint, req *payload.UpdateTableReq) (*payload.Ta
 	existingTable.RestaurantID = req.RestaurantID
 	existingTable.Name = req.Name
 	existingTable.GuestCount = req.GuestCount
+	existingTable.Menu = req.Menu
 
 	updatedTable, err := s.tableRepo.Update(existingTable)
 	if err != nil {
@@ -131,5 +133,6 @@ func mapTableToResponse(table *storage.Table) payload.TableResp {
 		Restaurant: restaurantResp,
 		Name:       table.Name,
 		GuestCount: table.GuestCount,
+		Menu:       table.Menu,
 	}
 }

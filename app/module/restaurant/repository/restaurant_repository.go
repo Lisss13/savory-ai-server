@@ -71,6 +71,7 @@ func (r *restaurantRepository) Update(restaurant *storage.Restaurant) (res *stor
 		"website":         restaurant.Website,
 		"description":     restaurant.Description,
 		"image_url":       restaurant.ImageURL,
+		"menu":            restaurant.Menu,
 	}).Error; err != nil {
 		return nil, err
 	}

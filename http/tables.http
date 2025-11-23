@@ -1,27 +1,143 @@
-### Tables API
+### ============================================
+### TABLE API - Positive Tests
+### ============================================
 
-###
-GET http://localhost:4000/tables/restaurant/11
-Authorization: Bearer {{auth_token}}
+### 1. Login
+# @name login
+POST http://localhost:4000/auth/login
 Content-Type: application/json
 
-###
-GET http://localhost:4000/tables/2
-Authorization: Bearer {{auth_token}}
-Content-Type: application/json
+{
+  "email": "mironovq30@gmail.com",
+  "password": "Qwerty12e"
+}
 
-###
+> {%
+    client.global.set("auth_token", response.body.data.accessToken);
+    client.global.set("organization_id", response.body.data.user.organization.id);
+%}
+
+### 2. Get restaurants to use restaurant_id
+# @name getRestaurants
+GET http://localhost:4000/restaurants
+Authorization: Bearer {{auth_token}}
+
+> {%
+    if (response.body.data.restaurants && response.body.data.restaurants.length > 0) {
+        client.global.set("restaurant_id", response.body.data.restaurants[0].id);
+    }
+%}
+
+### 3. Get all tables
 GET http://localhost:4000/tables
 Authorization: Bearer {{auth_token}}
-Content-Type: application/json
 
-###
+### 4. Create table without menu
+# @name createTable
 POST http://localhost:4000/tables
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 {
-  "name": "3",
-  "guestCount": 3,
-  "restaurantId": 8
+  "name": "Table 1",
+  "guestCount": 4,
+  "restaurantId": {{restaurant_id}}
 }
+
+> {%
+    client.global.set("table_id", response.body.data.id);
+%}
+
+### 5. Create table with menu link
+# @name createTableWithMenu
+POST http://localhost:4000/tables
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "VIP Table",
+  "guestCount": 6,
+  "restaurantId": {{restaurant_id}},
+  "menu": "https://menu-service.com/restaurant/vip-menu"
+}
+
+> {%
+    client.global.set("table_with_menu_id", response.body.data.id);
+%}
+
+### 6. Create another table with different menu
+# @name createTableWithMenu2
+POST http://localhost:4000/tables
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Terrace Table",
+  "guestCount": 2,
+  "restaurantId": {{restaurant_id}},
+  "menu": "https://menu-service.com/restaurant/terrace-menu"
+}
+
+> {%
+    client.global.set("table_terrace_id", response.body.data.id);
+%}
+
+### 7. Get table by ID
+GET http://localhost:4000/tables/{{table_id}}
+Authorization: Bearer {{auth_token}}
+
+### 8. Get table with menu by ID
+GET http://localhost:4000/tables/{{table_with_menu_id}}
+Authorization: Bearer {{auth_token}}
+
+### 9. Get tables by restaurant
+GET http://localhost:4000/tables/restaurant/{{restaurant_id}}
+Authorization: Bearer {{auth_token}}
+
+### 10. Update table - add menu link
+PUT http://localhost:4000/tables/{{table_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Table 1 Updated",
+  "guestCount": 5,
+  "restaurantId": {{restaurant_id}},
+  "menu": "https://menu-service.com/restaurant/table1-menu"
+}
+
+### 11. Update table - change menu link
+PUT http://localhost:4000/tables/{{table_with_menu_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "VIP Table Premium",
+  "guestCount": 8,
+  "restaurantId": {{restaurant_id}},
+  "menu": "https://menu-service.com/restaurant/vip-premium-menu"
+}
+
+### 12. Update table - remove menu (empty string)
+PUT http://localhost:4000/tables/{{table_terrace_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Terrace Table",
+  "guestCount": 2,
+  "restaurantId": {{restaurant_id}},
+  "menu": ""
+}
+
+### 13. Delete table
+DELETE http://localhost:4000/tables/{{table_id}}
+Authorization: Bearer {{auth_token}}
+
+### 14. Delete table with menu
+DELETE http://localhost:4000/tables/{{table_with_menu_id}}
+Authorization: Bearer {{auth_token}}
+
+### 15. Delete terrace table
+DELETE http://localhost:4000/tables/{{table_terrace_id}}
+Authorization: Bearer {{auth_token}}

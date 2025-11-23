@@ -15,6 +15,7 @@ type Restaurant struct {
 	Website        string         `gorm:"column:website" json:"website"`
 	Description    string         `gorm:"column:description" json:"description"`
 	ImageURL       string         `gorm:"column:image_url" json:"image_url"`
+	Menu           string         `gorm:"column:menu" json:"menu"`
 	WorkingHours   []*WorkingHour `gorm:"foreignKey:RestaurantID" json:"working_hours"`
 }
 

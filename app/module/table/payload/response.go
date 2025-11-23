@@ -15,6 +15,7 @@ type TableResp struct {
 	Restaurant RestaurantResp `json:"restaurant"`
 	Name       string         `json:"name"`
 	GuestCount int            `json:"guestCount"`
+	Menu       string         `json:"menu,omitempty"`
 }
 
 // TablesResp represents a list of tables in a response

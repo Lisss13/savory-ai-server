@@ -90,6 +90,7 @@ func (s *restaurantService) Create(req *payload.CreateRestaurantReq) (*payload.R
 		Website:        req.Website,
 		Description:    req.Description,
 		ImageURL:       req.ImageURL,
+		Menu:           req.Menu,
 		WorkingHours:   workingHours,
 	}
 
@@ -121,6 +122,7 @@ func (s *restaurantService) Update(id uint, req *payload.UpdateRestaurantReq) (*
 	existingRestaurant.Website = req.Website
 	existingRestaurant.Description = req.Description
 	existingRestaurant.ImageURL = req.ImageURL
+	existingRestaurant.Menu = req.Menu
 
 	updatedRestaurant, err := s.restaurantRepo.Update(existingRestaurant)
 	if err != nil {
@@ -169,6 +171,7 @@ func mapRestaurantToResponse(restaurant *storage.Restaurant) payload.RestaurantR
 		Website:      restaurant.Website,
 		Description:  restaurant.Description,
 		ImageURL:     restaurant.ImageURL,
+		Menu:         restaurant.Menu,
 		WorkingHours: workingHourResps,
 	}
 }

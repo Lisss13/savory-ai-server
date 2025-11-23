@@ -1,96 +1,133 @@
-### Restaurants
+### ============================================
+### RESTAURANT API - Positive Tests
+### ============================================
 
-###
-# Get all restaurants
-GET http://localhost:4000/restaurants
+### 1. Login
+# @name login
+POST http://localhost:4000/auth/login
 Content-Type: application/json
+
+{
+  "email": "mironovq30@gmail.com",
+  "password": "Qwerty12e"
+}
+
+> {%
+    client.global.set("auth_token", response.body.data.accessToken);
+    client.global.set("organization_id", response.body.data.user.organization.id);
+%}
+
+### 2. Get all restaurants
+GET http://localhost:4000/restaurants
 Authorization: Bearer {{auth_token}}
 
-###
-# Create a new restaurant
+### 3. Create restaurant without menu
+# @name createRestaurant
 POST http://localhost:4000/restaurants
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 {
-  "organization_id": 3,
-  "name": "Italian Restaurant",
-  "address": "123 Main St, City, Country",
+  "organization_id": {{organization_id}},
+  "name": "Italian Bistro",
+  "address": "123 Main St, City",
   "phone": "+1234567890",
-  "website": "https://example.com",
+  "website": "https://italian-bistro.com",
   "description": "Authentic Italian cuisine",
-  "image_url": "https://example.com/image.jpg",
+  "image_url": "https://example.com/bistro.jpg",
   "working_hours": [
-    {
-      "day_of_week": 1,
-      "open_time": "2023-01-01T09:00:00Z",
-      "close_time": "2023-01-01T22:00:00Z"
-    },
-    {
-      "day_of_week": 2,
-      "open_time": "2023-01-01T09:00:00Z",
-      "close_time": "2023-01-01T22:00:00Z"
-    },
-    {
-      "day_of_week": 3,
-      "open_time": "2023-01-01T09:00:00Z",
-      "close_time": "2023-01-01T22:00:00Z"
-    },
-    {
-      "day_of_week": 4,
-      "open_time": "2023-01-01T09:00:00Z",
-      "close_time": "2023-01-01T22:00:00Z"
-    },
-    {
-      "day_of_week": 5,
-      "open_time": "2023-01-01T09:00:00Z",
-      "close_time": "2023-01-01T23:00:00Z"
-    },
-    {
-      "day_of_week": 6,
-      "open_time": "2023-01-01T10:00:00Z",
-      "close_time": "2023-01-01T23:00:00Z"
-    },
-    {
-      "day_of_week": 0,
-      "open_time": "2023-01-01T10:00:00Z",
-      "close_time": "2023-01-01T22:00:00Z"
-    }
+    {"day_of_week": 1, "open_time": "09:00", "close_time": "22:00"},
+    {"day_of_week": 2, "open_time": "09:00", "close_time": "22:00"},
+    {"day_of_week": 3, "open_time": "09:00", "close_time": "22:00"},
+    {"day_of_week": 4, "open_time": "09:00", "close_time": "22:00"},
+    {"day_of_week": 5, "open_time": "09:00", "close_time": "23:00"},
+    {"day_of_week": 6, "open_time": "10:00", "close_time": "23:00"},
+    {"day_of_week": 0, "open_time": "10:00", "close_time": "21:00"}
   ]
 }
 
-> {% client.global.set("restaurant_id", response.body.data.id); %}
+> {%
+    client.global.set("restaurant_id", response.body.data.id);
+%}
 
-###
-# Get a specific restaurant by ID
+### 4. Create restaurant with menu link
+# @name createRestaurantWithMenu
+POST http://localhost:4000/restaurants
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "organization_id": {{organization_id}},
+  "name": "Sushi House",
+  "address": "456 Oak Ave, City",
+  "phone": "+1987654321",
+  "website": "https://sushi-house.com",
+  "description": "Fresh Japanese cuisine",
+  "image_url": "https://example.com/sushi.jpg",
+  "menu": "https://menu-service.com/sushi-house/menu",
+  "working_hours": [
+    {"day_of_week": 1, "open_time": "11:00", "close_time": "22:00"},
+    {"day_of_week": 2, "open_time": "11:00", "close_time": "22:00"},
+    {"day_of_week": 3, "open_time": "11:00", "close_time": "22:00"},
+    {"day_of_week": 4, "open_time": "11:00", "close_time": "22:00"},
+    {"day_of_week": 5, "open_time": "11:00", "close_time": "23:00"},
+    {"day_of_week": 6, "open_time": "12:00", "close_time": "23:00"},
+    {"day_of_week": 0, "open_time": "12:00", "close_time": "21:00"}
+  ]
+}
+
+> {%
+    client.global.set("restaurant_with_menu_id", response.body.data.id);
+%}
+
+### 5. Get restaurant by ID
 GET http://localhost:4000/restaurants/{{restaurant_id}}
-Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
-###
-# Get all restaurants for a specific user
-GET http://localhost:4000/restaurants/organization/5
-Content-Type: application/json
+### 6. Get restaurant with menu by ID
+GET http://localhost:4000/restaurants/{{restaurant_with_menu_id}}
 Authorization: Bearer {{auth_token}}
 
-###
-# Update a restaurant
+### 7. Get restaurants by organization
+GET http://localhost:4000/restaurants/organization/{{organization_id}}
+Authorization: Bearer {{auth_token}}
+
+### 8. Update restaurant - add menu link
 PUT http://localhost:4000/restaurants/{{restaurant_id}}
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 {
-  "organization_id": 1,
-  "name": "Updated Italian Restaurant 2",
-  "address": "456 Main St, City, Country 2",
-  "phone": "+1234567830",
-  "website": "https://example-updated.com",
-  "description": "Updated authentic Italian cuisine",
-  "image_url": "https://example.com/updated-image.jpg"
+  "organization_id": {{organization_id}},
+  "name": "Italian Bistro Deluxe",
+  "address": "123 Main St, City",
+  "phone": "+1234567890",
+  "website": "https://italian-bistro-deluxe.com",
+  "description": "Premium authentic Italian cuisine",
+  "image_url": "https://example.com/bistro-deluxe.jpg",
+  "menu": "https://menu-service.com/italian-bistro/menu"
 }
 
-###
-# Delete a restaurant
-DELETE http://localhost:4000/restaurants/{{restaurant_id}}
+### 9. Update restaurant - change menu link
+PUT http://localhost:4000/restaurants/{{restaurant_with_menu_id}}
 Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "organization_id": {{organization_id}},
+  "name": "Sushi House Premium",
+  "address": "456 Oak Ave, City",
+  "phone": "+1987654321",
+  "website": "https://sushi-house-premium.com",
+  "description": "Premium Japanese cuisine",
+  "image_url": "https://example.com/sushi-premium.jpg",
+  "menu": "https://menu-service.com/sushi-house-premium/menu"
+}
+
+### 10. Delete restaurant
+DELETE http://localhost:4000/restaurants/{{restaurant_id}}
+Authorization: Bearer {{auth_token}}
+
+### 11. Delete restaurant with menu
+DELETE http://localhost:4000/restaurants/{{restaurant_with_menu_id}}
 Authorization: Bearer {{auth_token}}
