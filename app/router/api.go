@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/gofiber/fiber/v2"
 	"savory-ai-server/app/middleware"
+	"savory-ai-server/app/module/admin"
 	"savory-ai-server/app/module/auth"
 	"savory-ai-server/app/module/chat"
 	"savory-ai-server/app/module/dish"
@@ -17,6 +18,7 @@ import (
 	"savory-ai-server/app/module/user"
 	"savory-ai-server/utils/config"
 	"savory-ai-server/utils/jwt"
+	"savory-ai-server/utils/response"
 )
 
 type Router struct {
@@ -32,9 +34,10 @@ type Router struct {
 	TableRouter        *table.TableRouter
 	QuestionRouter     *question.QuestionRouter
 	RestaurantRouter   *restaurant.RestaurantRouter
-	OrganizationRouter   *organization.OrganizationRouter
-	ChatRouter           *chat.ChatRouter
-	SubscriptionRouter   *subscription.SubscriptionRouter
+	OrganizationRouter *organization.OrganizationRouter
+	ChatRouter         *chat.ChatRouter
+	SubscriptionRouter *subscription.SubscriptionRouter
+	AdminRouter        *admin.AdminRouter
 }
 
 func NewRouter(
@@ -53,6 +56,7 @@ func NewRouter(
 	organizationRouter *organization.OrganizationRouter,
 	chatRouter *chat.ChatRouter,
 	subscriptionRouter *subscription.SubscriptionRouter,
+	adminRouter *admin.AdminRouter,
 ) *Router {
 	return &Router{
 		App:                fiber,
@@ -66,9 +70,10 @@ func NewRouter(
 		TableRouter:        tableRouter,
 		QuestionRouter:     questionRouter,
 		RestaurantRouter:   restaurantRouter,
-		OrganizationRouter:   organizationRouter,
-		ChatRouter:           chatRouter,
-		SubscriptionRouter:   subscriptionRouter,
+		OrganizationRouter: organizationRouter,
+		ChatRouter:         chatRouter,
+		SubscriptionRouter: subscriptionRouter,
+		AdminRouter:        adminRouter,
 	}
 }
 
@@ -83,13 +88,15 @@ func (r *Router) Register() {
 
 	r.App.Get("/auth/chek", authRequired, func(c *fiber.Ctx) error {
 		user := c.Locals("user").(jwt.JWTData)
-		return c.JSON(fiber.Map{
-			"success": true,
-			"data": fiber.Map{
-				"id":         user.ID,
-				"email":      user.Email,
-				"company_id": user.CompanyID,
-			},
+		res := c.JSON(fiber.Map{
+			"id":         user.ID,
+			"email":      user.Email,
+			"company_id": user.CompanyID,
+		})
+		return response.Resp(c, response.Response{
+			Data:     res,
+			Messages: response.Messages{"Login success"},
+			Code:     fiber.StatusOK,
 		})
 	})
 
@@ -106,4 +113,5 @@ func (r *Router) Register() {
 	r.OrganizationRouter.RegisterOrganizationRoutes(authRequired)
 	r.ChatRouter.RegisterChatRoutes()
 	r.SubscriptionRouter.RegisterSubscriptionRoutes(authRequired)
+	r.AdminRouter.RegisterAdminRoutes(authRequired)
 }

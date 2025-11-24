@@ -1,0 +1,141 @@
+### ============================================
+### ADMIN PANEL API - Positive Tests
+### ============================================
+### Важно: для тестирования нужен пользователь с ролью admin
+### Чтобы создать админа, выполните в БД:
+### UPDATE users SET role = 'admin' WHERE email = 'your_email@example.com';
+
+### 1. Login as Admin
+# @name loginAdmin
+POST http://localhost:4000/auth/login
+Content-Type: application/json
+
+{
+  "email": "mironovq30@gmail.com",
+  "password": "Qwerty12e"
+}
+
+> {%
+    client.global.set("admin_token", response.body.data.token);
+%}
+
+### ============================================
+### СТАТИСТИКА
+### ============================================
+
+### 2. Get dashboard stats
+GET http://localhost:4000/admin/stats
+Authorization: Bearer {{admin_token}}
+
+### ============================================
+### УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ
+### ============================================
+
+### 3. Get all users (page 1, 20 per page)
+GET http://localhost:4000/admin/users
+Authorization: Bearer {{admin_token}}
+
+### 4. Get all users (page 2, 10 per page)
+GET http://localhost:4000/admin/users?page=2&pageSize=10
+Authorization: Bearer {{admin_token}}
+
+### 5. Get user by ID
+# @name getUserById
+GET http://localhost:4000/admin/users/1
+Authorization: Bearer {{admin_token}}
+
+### 6. Block user
+PATCH http://localhost:4000/admin/users/2/status
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "isActive": false
+}
+
+### 7. Unblock user
+PATCH http://localhost:4000/admin/users/2/status
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "isActive": true
+}
+
+### 8. Change user role to admin
+PATCH http://localhost:4000/admin/users/2/role
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "role": "admin"
+}
+
+### 9. Change user role back to user
+PATCH http://localhost:4000/admin/users/2/role
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "role": "user"
+}
+
+### 10. Delete user (caution: permanent)
+DELETE http://localhost:4000/admin/users/999
+Authorization: Bearer {{admin_token}}
+
+### ============================================
+### УПРАВЛЕНИЕ ОРГАНИЗАЦИЯМИ
+### ============================================
+
+### 11. Get all organizations
+GET http://localhost:4000/admin/organizations
+Authorization: Bearer {{admin_token}}
+
+### 12. Get all organizations (page 2)
+GET http://localhost:4000/admin/organizations?page=2&pageSize=10
+Authorization: Bearer {{admin_token}}
+
+### 13. Get organization by ID
+GET http://localhost:4000/admin/organizations/1
+Authorization: Bearer {{admin_token}}
+
+### 14. Delete organization (caution: permanent)
+DELETE http://localhost:4000/admin/organizations/999
+Authorization: Bearer {{admin_token}}
+
+### ============================================
+### МОДЕРАЦИЯ КОНТЕНТА (БЛЮДА)
+### ============================================
+
+### 15. Get all dishes for moderation
+GET http://localhost:4000/admin/dishes
+Authorization: Bearer {{admin_token}}
+
+### 16. Get all dishes (page 2, 50 per page)
+GET http://localhost:4000/admin/dishes?page=2&pageSize=50
+Authorization: Bearer {{admin_token}}
+
+### 17. Delete dish (moderation)
+DELETE http://localhost:4000/admin/dishes/999
+Authorization: Bearer {{admin_token}}
+
+### ============================================
+### ЛОГИ АДМИНИСТРАТОРОВ
+### ============================================
+
+### 18. Get all admin logs
+GET http://localhost:4000/admin/logs
+Authorization: Bearer {{admin_token}}
+
+### 19. Get admin logs (page 2, 100 per page)
+GET http://localhost:4000/admin/logs?page=2&pageSize=100
+Authorization: Bearer {{admin_token}}
+
+### 20. Get my logs (current admin)
+GET http://localhost:4000/admin/logs/me
+Authorization: Bearer {{admin_token}}
+
+### 21. Get my logs (with pagination)
+GET http://localhost:4000/admin/logs/me?page=1&pageSize=25
+Authorization: Bearer {{admin_token}}

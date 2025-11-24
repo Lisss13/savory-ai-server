@@ -5,7 +5,7 @@
 *.so
 *.dylib
 
-
+.claude
 # Test binary, built with `go test -c`
 *.test
 
@@ -132,3 +132,4 @@ fabric.properties
 # https://plugins.jetbrains.com/plugin/8053-azure-toolkit-for-intellij
 .idea/**/azureSettings.xml
 /storage/public/qr_codes/
+/testsprite_tests/

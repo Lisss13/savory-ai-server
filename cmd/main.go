@@ -4,6 +4,7 @@ import (
 	fxzerolog "github.com/efectn/fx-zerolog"
 	"go.uber.org/fx"
 	"savory-ai-server/app/middleware"
+	"savory-ai-server/app/module/admin"
 	"savory-ai-server/app/module/auth"
 	"savory-ai-server/app/module/chat"
 	"savory-ai-server/app/module/dish"
@@ -51,6 +52,7 @@ func main() {
 		organization.OrganizationModuler,
 		chat.ChatModule,
 		subscription.SubscriptionModule,
+		admin.AdminModule,
 
 		// start aplication
 		fx.Invoke(bootstrap.Start),

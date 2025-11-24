@@ -71,6 +71,12 @@ func (as *authService) Login(req payload.LoginRequest) (res payload.LoginRespons
 		return
 	}
 
+	// Проверяем, активен ли пользователь
+	if !user.IsActive {
+		err = errors.New("user is blocked")
+		return
+	}
+
 	// do create token
 	token, exp, err := jwt.
 		NewJWT(as.config.Middleware.Jwt.Secret, as.config.Middleware.Jwt.Expiration).
@@ -78,6 +84,7 @@ func (as *authService) Login(req payload.LoginRequest) (res payload.LoginRespons
 			ID:        user.ID,
 			Email:     user.Email,
 			CompanyID: company.ID,
+			Role:      string(user.Role),
 		})
 	if err != nil {
 		return
@@ -126,6 +133,8 @@ func (as *authService) Register(req payload.RegisterRequest) (res payload.Regist
 		Phone:    req.Phone,
 		Name:     req.Name,
 		Password: string(bcryptPassword),
+		Role:     storage.RoleUser,
+		IsActive: true,
 	}
 
 	user, err = as.userRepo.CreateUser(newUser)

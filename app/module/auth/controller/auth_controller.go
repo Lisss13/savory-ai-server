@@ -31,12 +31,18 @@ func NewAuthController(authService service.AuthService) AuthController {
 func (ac *authController) Login(c *fiber.Ctx) error {
 	req := new(payload.LoginRequest)
 	if err := response.ParseAndValidate(c, req); err != nil {
-		return err
+		return response.Resp(c, response.Response{
+			Messages: response.Messages{err.Error()},
+			Code:     fiber.StatusBadRequest,
+		})
 	}
 
 	res, err := ac.authService.Login(*req)
 	if err != nil {
-		return err
+		return response.Resp(c, response.Response{
+			Messages: response.Messages{err.Error()},
+			Code:     fiber.StatusUnauthorized,
+		})
 	}
 
 	return response.Resp(c, response.Response{
@@ -58,13 +64,23 @@ func (ac *authController) Register(ctx *fiber.Ctx) error {
 
 	res, err := ac.authService.Register(*req)
 	if err != nil {
-		return err
+		// Check for duplicate email error
+		if err.Error() == "email already exists" {
+			return response.Resp(ctx, response.Response{
+				Messages: response.Messages{err.Error()},
+				Code:     fiber.StatusConflict,
+			})
+		}
+		return response.Resp(ctx, response.Response{
+			Messages: response.Messages{err.Error()},
+			Code:     fiber.StatusBadRequest,
+		})
 	}
 
 	return response.Resp(ctx, response.Response{
 		Data:     res,
 		Messages: response.Messages{"Register success"},
-		Code:     fiber.StatusOK,
+		Code:     fiber.StatusCreated,
 	})
 }
 

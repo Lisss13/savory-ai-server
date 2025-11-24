@@ -5,13 +5,23 @@ import (
 	"gorm.io/gorm"
 )
 
+// UserRole represents user role in the system
+type UserRole string
+
+const (
+	RoleUser  UserRole = "user"  // Обычный пользователь
+	RoleAdmin UserRole = "admin" // Администратор системы
+)
+
 type User struct {
 	gorm.Model
-	Name     string `gorm:"column:name;not null" json:"name"`
-	Company  string `gorm:"column:company;not null" json:"company"`
-	Email    string `gorm:"column:email;unique;not null" json:"email"`
-	Phone    string `gorm:"column:phone;not null" json:"phone"`
-	Password string `gorm:"column:password;not null" json:"-"`
+	Name     string   `gorm:"column:name;not null" json:"name"`
+	Company  string   `gorm:"column:company;not null" json:"company"`
+	Email    string   `gorm:"column:email;unique;not null" json:"email"`
+	Phone    string   `gorm:"column:phone;not null" json:"phone"`
+	Password string   `gorm:"column:password;not null" json:"-"`
+	Role     UserRole `gorm:"column:role;default:user" json:"role"`
+	IsActive bool     `gorm:"column:is_active;default:true" json:"is_active"`
 }
 
 // ComparePassword compare password

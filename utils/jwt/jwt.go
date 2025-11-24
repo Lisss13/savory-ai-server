@@ -15,6 +15,7 @@ type JWTData struct {
 	ID        uint
 	Email     string
 	CompanyID uint
+	Role      string
 }
 
 func NewJWT(secret string, expiration time.Duration) *JWT {
@@ -33,6 +34,7 @@ func (j *JWT) GenerateToken(data JWTData) (string, time.Time, error) {
 		"email":      data.Email,
 		"id":         data.ID,
 		"company_id": data.CompanyID,
+		"role":       data.Role,
 	})
 	s, err := jt.SignedString(mySigningKey)
 	if err != nil {
@@ -58,6 +60,11 @@ func (j *JWT) ParseToken(tokenString string) (bool, *JWTData) {
 		data.Email = fmt.Sprint(claims["email"])
 		data.ID = uint(claims["id"].(float64))
 		data.CompanyID = uint(claims["company_id"].(float64))
+		if role, ok := claims["role"].(string); ok {
+			data.Role = role
+		} else {
+			data.Role = "user"
+		}
 	}
 
 	return token.Valid, data

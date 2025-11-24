@@ -16,6 +16,7 @@ type userService struct {
 type UserService interface {
 	FindUserByID(userID int64) (*payload.UserResp, error)
 	CreateUser(req *payload.UserCreateReq, CompanyID uint) (*payload.UserResp, error)
+	UpdateUser(id int64, req *payload.UserUpdateReq) (*payload.UserResp, error)
 }
 
 func NewUserService(userRepo repository.UserRepository, organizationService service.OrganizationService) UserService {
@@ -77,6 +78,41 @@ func (ur *userService) CreateUser(req *payload.UserCreateReq, companyID uint) (*
 		Name:      createdUser.Name,
 		Company:   createdUser.Company,
 		Phone:     createdUser.Phone,
+	}
+	return resp, nil
+}
+
+func (ur *userService) UpdateUser(id int64, req *payload.UserUpdateReq) (*payload.UserResp, error) {
+	updates := make(map[string]interface{})
+	if req.Name != "" {
+		updates["name"] = req.Name
+	}
+	if req.Company != "" {
+		updates["company"] = req.Company
+	}
+	if req.Email != "" {
+		updates["email"] = req.Email
+	}
+	if req.Phone != "" {
+		updates["phone"] = req.Phone
+	}
+
+	if len(updates) == 0 {
+		return ur.FindUserByID(id)
+	}
+
+	user, err := ur.userRepo.UpdateUser(id, updates)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &payload.UserResp{
+		ID:        user.ID,
+		CreatedAt: user.CreatedAt,
+		Email:     user.Email,
+		Name:      user.Name,
+		Company:   user.Company,
+		Phone:     user.Phone,
 	}
 	return resp, nil
 }

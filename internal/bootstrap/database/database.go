@@ -86,6 +86,7 @@ func Models() []any {
 		&storage.OrganizationLanguage{},
 		&storage.Allergen{},
 		&storage.Subscription{},
+		&storage.AdminLog{},
 	}
 }
 
