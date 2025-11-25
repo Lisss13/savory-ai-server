@@ -1,3 +1,5 @@
+// Package service содержит бизнес-логику для модуля чата.
+// Этот файл содержит fallback-генератор ответов на случай недоступности AI.
 package service
 
 import (
@@ -5,6 +7,9 @@ import (
 	"strings"
 )
 
+// generateBotResponse генерирует простой ответ бота на основе ключевых слов.
+// Используется как fallback когда Anthropic API недоступен.
+// Поддерживает базовые сценарии: приветствие, меню, заказ, оплата, прощание.
 func generateBotResponse(userMessage string) (string, error) {
 
 	// Simple responses based on keywords

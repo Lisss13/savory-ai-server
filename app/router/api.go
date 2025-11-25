@@ -12,6 +12,7 @@ import (
 	"savory-ai-server/app/module/organization"
 	qrcode "savory-ai-server/app/module/qr_code"
 	"savory-ai-server/app/module/question"
+	"savory-ai-server/app/module/reservation"
 	"savory-ai-server/app/module/restaurant"
 	"savory-ai-server/app/module/subscription"
 	"savory-ai-server/app/module/table"
@@ -35,6 +36,7 @@ type Router struct {
 	QuestionRouter     *question.QuestionRouter
 	RestaurantRouter   *restaurant.RestaurantRouter
 	OrganizationRouter *organization.OrganizationRouter
+	ReservationRouter  *reservation.ReservationRouter
 	ChatRouter         *chat.ChatRouter
 	SubscriptionRouter *subscription.SubscriptionRouter
 	AdminRouter        *admin.AdminRouter
@@ -54,6 +56,7 @@ func NewRouter(
 	questionRouter *question.QuestionRouter,
 	restaurantRouter *restaurant.RestaurantRouter,
 	organizationRouter *organization.OrganizationRouter,
+	reservationRouter *reservation.ReservationRouter,
 	chatRouter *chat.ChatRouter,
 	subscriptionRouter *subscription.SubscriptionRouter,
 	adminRouter *admin.AdminRouter,
@@ -71,6 +74,7 @@ func NewRouter(
 		QuestionRouter:     questionRouter,
 		RestaurantRouter:   restaurantRouter,
 		OrganizationRouter: organizationRouter,
+		ReservationRouter:  reservationRouter,
 		ChatRouter:         chatRouter,
 		SubscriptionRouter: subscriptionRouter,
 		AdminRouter:        adminRouter,
@@ -111,6 +115,7 @@ func (r *Router) Register() {
 	r.QuestionRouter.RegisterQuestionRoutes(authRequired)
 	r.RestaurantRouter.RegisterRestaurantRoutes(authRequired)
 	r.OrganizationRouter.RegisterOrganizationRoutes(authRequired)
+	r.ReservationRouter.RegisterReservationRoutes(authRequired)
 	r.ChatRouter.RegisterChatRoutes()
 	r.SubscriptionRouter.RegisterSubscriptionRoutes(authRequired)
 	r.AdminRouter.RegisterAdminRoutes(authRequired)

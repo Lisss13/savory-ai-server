@@ -81,17 +81,24 @@ func (s *restaurantService) Create(req *payload.CreateRestaurantReq) (*payload.R
 		})
 	}
 
+	// Set default reservation duration if not provided
+	reservationDuration := req.ReservationDuration
+	if reservationDuration == 0 {
+		reservationDuration = 90 // Default 90 minutes
+	}
+
 	// Create restaurant
 	restaurant := &storage.Restaurant{
-		OrganizationID: req.OrganizationID,
-		Name:           req.Name,
-		Address:        req.Address,
-		Phone:          req.Phone,
-		Website:        req.Website,
-		Description:    req.Description,
-		ImageURL:       req.ImageURL,
-		Menu:           req.Menu,
-		WorkingHours:   workingHours,
+		OrganizationID:      req.OrganizationID,
+		Name:                req.Name,
+		Address:             req.Address,
+		Phone:               req.Phone,
+		Website:             req.Website,
+		Description:         req.Description,
+		ImageURL:            req.ImageURL,
+		Menu:                req.Menu,
+		ReservationDuration: reservationDuration,
+		WorkingHours:        workingHours,
 	}
 
 	createdRestaurant, err := s.restaurantRepo.Create(restaurant)
@@ -123,6 +130,9 @@ func (s *restaurantService) Update(id uint, req *payload.UpdateRestaurantReq) (*
 	existingRestaurant.Description = req.Description
 	existingRestaurant.ImageURL = req.ImageURL
 	existingRestaurant.Menu = req.Menu
+	if req.ReservationDuration > 0 {
+		existingRestaurant.ReservationDuration = req.ReservationDuration
+	}
 
 	updatedRestaurant, err := s.restaurantRepo.Update(existingRestaurant)
 	if err != nil {
@@ -162,16 +172,17 @@ func mapRestaurantToResponse(restaurant *storage.Restaurant) payload.RestaurantR
 
 	// Map restaurant
 	return payload.RestaurantResp{
-		ID:           restaurant.ID,
-		CreatedAt:    restaurant.CreatedAt,
-		Organization: organizationResp,
-		Name:         restaurant.Name,
-		Address:      restaurant.Address,
-		Phone:        restaurant.Phone,
-		Website:      restaurant.Website,
-		Description:  restaurant.Description,
-		ImageURL:     restaurant.ImageURL,
-		Menu:         restaurant.Menu,
-		WorkingHours: workingHourResps,
+		ID:                  restaurant.ID,
+		CreatedAt:           restaurant.CreatedAt,
+		Organization:        organizationResp,
+		Name:                restaurant.Name,
+		Address:             restaurant.Address,
+		Phone:               restaurant.Phone,
+		Website:             restaurant.Website,
+		Description:         restaurant.Description,
+		ImageURL:            restaurant.ImageURL,
+		Menu:                restaurant.Menu,
+		ReservationDuration: restaurant.ReservationDuration,
+		WorkingHours:        workingHourResps,
 	}
 }

@@ -1,105 +1,342 @@
-### Chat API
-# This file contains HTTP requests to test the chat functionality of the Savory AI server.
-# The chat API allows users to interact with a bot through a table-based chat system.
+### ============================================
+### CHAT & RESERVATION API - Positive Tests
+### ============================================
 
 @host = http://localhost:4000
-@token = {{auth_token}} # This token is set after login in auth.http
 
-### Get restaurant chats
-# Retrieves all chat sessions for a specific restaurant
-# Response: List of chat sessions with their IDs, active status, and last active timestamp
-GET {{host}}/chat/restaurant/11
-Authorization: Bearer {{token}}
-
-### Start a chat session for a table
-# Creates a new chat session for a specific table in a restaurant
-# Response: Chat session details including ID, active status, and last active timestamp
-POST {{host}}/chat/table/session/start
+### 1. Login to get auth token
+# @name login
+POST {{host}}/auth/login
 Content-Type: application/json
-Authorization: Bearer {{token}}
 
 {
-  "tableId": 22,
-  "restaurantId": 11
+  "email": "mironovq30@gmail.com",
+  "password": "Qwerty12e"
 }
 
-### Close a chat session
-# Closes an active chat session
-# Response: Success message
-POST {{host}}/chat/table/session/close/9
-Content-Type: application/json
-Authorization: Bearer {{token}}
+> {%
+    client.global.set("auth_token", response.body.data.accessToken);
+    client.global.set("organization_id", response.body.data.user.organization.id);
+%}
 
+### 2. Get restaurants to use restaurant_id
+# @name getRestaurants
+GET {{host}}/restaurants
+Authorization: Bearer {{auth_token}}
 
-### Send a message from a table
-# Sends a message from a user at a table and receives a bot response
-# Response: Bot message with content, ID, and timestamp
-POST {{host}}/chat/table/message/send
+> {%
+    if (response.body.data.restaurants && response.body.data.restaurants.length > 0) {
+        client.global.set("restaurant_id", response.body.data.restaurants[0].id);
+    }
+%}
+
+### 3. Get tables for the restaurant (need for reservation)
+# @name getTables
+GET {{host}}/tables/restaurant/{{restaurant_id}}
+Authorization: Bearer {{auth_token}}
+
+> {%
+    if (response.body.data && response.body.data.length > 0) {
+        client.global.set("table_id", response.body.data[0].id);
+    }
+%}
+
+### ============================================
+### RESERVATION DIRECT API TESTS (Public)
+### ============================================
+
+### 4. Get available slots for a date (PUBLIC - no auth)
+# @name getAvailableSlots
+GET {{host}}/reservations/available/{{restaurant_id}}?date=2025-11-28&guest_count=2
+
+### 5. Get available slots for tomorrow
+GET {{host}}/reservations/available/{{restaurant_id}}?date=2025-11-26&guest_count=4
+
+### 6. Create a reservation (PUBLIC - no auth)
+# @name createReservation
+POST {{host}}/reservations/
 Content-Type: application/json
-Authorization: Bearer {{token}}
 
 {
-  "sessionId": 9,
-  "content": "Hello, I'd like to know more about today's specials."
+  "restaurant_id": {{restaurant_id}},
+  "table_id": {{table_id}},
+  "customer_name": "Иван Петров",
+  "customer_phone": "+79161234567",
+  "customer_email": "ivan@example.com",
+  "guest_count": 2,
+  "reservation_date": "2025-11-28",
+  "start_time": "18:00",
+  "notes": "Столик у окна, пожалуйста"
 }
 
-### Get messages from a session
-# Retrieves all messages from a specific chat session
-# Response: List of messages with their content, ID, and timestamp
-GET {{host}}/chat/table/session/9/messages
-Authorization: Bearer {{token}}
+> {%
+    client.global.set("reservation_id", response.body.data.id);
+    client.global.set("customer_phone", "+79161234567");
+%}
 
-### Get sessions for a table
-# Retrieves all chat sessions for a specific table
-# Response: List of sessions with their IDs, active status, and last active timestamp
-GET {{host}}/chat/table/session/22
-Authorization: Bearer {{token}}
+### 7. Create another reservation for testing
+# @name createReservation2
+POST {{host}}/reservations/
+Content-Type: application/json
 
-### Get sessions by restaurant
-GET {{host}}/chat/restaurant/11
-Authorization: Bearer {{token}}
+{
+  "restaurant_id": {{restaurant_id}},
+  "table_id": {{table_id}},
+  "customer_name": "Мария Иванова",
+  "customer_phone": "+79161234567",
+  "guest_count": 4,
+  "reservation_date": "2025-11-29",
+  "start_time": "19:30",
+  "notes": "День рождения"
+}
 
-### Restaurant Chat API
-# The following requests are for testing the restaurant chat functionality
+> {%
+    client.global.set("reservation_id_2", response.body.data.id);
+%}
 
-### Start a restaurant chat session
-# Creates a new chat session for a specific restaurant
-# Response: Chat session details including ID, active status, and last active timestamp
+### 8. Get my reservations by phone (PUBLIC - no auth)
+# @name getMyReservations
+GET {{host}}/reservations/my?phone=+79161234567
+
+### 9. Cancel reservation by phone (PUBLIC - no auth)
+# @name cancelByPhone
+POST {{host}}/reservations/{{reservation_id_2}}/cancel/public?phone=+79161234567
+Content-Type: application/json
+
+{}
+
+### ============================================
+### RESERVATION DIRECT API TESTS (Protected)
+### ============================================
+
+### 10. Get all reservations (PROTECTED)
+GET {{host}}/reservations/
+Authorization: Bearer {{auth_token}}
+
+### 11. Get reservation by ID (PROTECTED)
+GET {{host}}/reservations/{{reservation_id}}
+Authorization: Bearer {{auth_token}}
+
+### 12. Get reservations by restaurant (PROTECTED)
+GET {{host}}/reservations/restaurant/{{restaurant_id}}
+Authorization: Bearer {{auth_token}}
+
+### 13. Update reservation (PROTECTED)
+PATCH {{host}}/reservations/{{reservation_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "guest_count": 3,
+  "notes": "Обновленная заметка - нужен детский стульчик"
+}
+
+### 14. Update reservation date/time (PROTECTED)
+PATCH {{host}}/reservations/{{reservation_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "reservation_date": "2025-11-28",
+  "start_time": "19:00"
+}
+
+### 15. Cancel reservation (PROTECTED - admin)
+# @name cancelReservationAdmin
+POST {{host}}/reservations/{{reservation_id}}/cancel
+Authorization: Bearer {{auth_token}}
+
+### ============================================
+### CHAT WITH AI - RESERVATION SCENARIOS
+### ============================================
+
+### 16. Start a restaurant chat session
+# @name startChatSession
 POST {{host}}/chat/restaurant/session/start
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{auth_token}}
 
 {
-  "restaurantId": 11
+  "restaurantId": {{restaurant_id}}
 }
 
-### Close a restaurant chat session
-# Closes an active restaurant chat session
-# Response: Success message
-POST {{host}}/chat/restaurant/session/close/1
-Content-Type: application/json
-Authorization: Bearer {{token}}
+> {%
+    client.global.set("chat_session_id", response.body.data.session.id);
+%}
 
-### Send a message from a restaurant
-# Sends a message from a restaurant and receives a bot response
-# Response: Bot message with content, ID, and timestamp
+### 17. Chat: Ask about available slots (triggers get_available_slots tool)
+# @name chatAskSlots
 POST {{host}}/chat/restaurant/message/send
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{auth_token}}
 
 {
-  "sessionId": 1,
-  "content": "Hello, I'd like to know more about your services."
+  "sessionId": {{chat_session_id}},
+  "content": "Are there any available tables for 2 people on November 28th?"
 }
 
-### Get messages from a restaurant session
-# Retrieves all messages from a specific restaurant chat session
-# Response: List of messages with their content, ID, and timestamp
-GET {{host}}/chat/restaurant/session/1/messages
-Authorization: Bearer {{token}}
+### 18. Chat: Ask for slots on another date
+POST {{host}}/chat/restaurant/message/send
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
 
-### Get all sessions for a restaurant
-# Retrieves all chat sessions for a specific restaurant
-# Response: List of sessions with their IDs, active status, and last active timestamp
-GET {{host}}/chat/restaurant/sessions/11
-Authorization: Bearer {{token}}
+{
+  "sessionId": {{chat_session_id}},
+  "content": "А что есть на завтра вечером для 4 гостей?"
+}
+
+### 19. Chat: Request reservation (triggers create_reservation tool)
+# @name chatMakeReservation
+POST {{host}}/chat/restaurant/message/send
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "sessionId": {{chat_session_id}},
+  "content": "Хочу забронировать столик на 28 ноября в 20:00 на 2 человека. Меня зовут Алексей Смирнов, телефон +79165551234"
+}
+
+
+### 20. Chat: Ask about restaurant info (triggers get_restaurant_info tool)
+POST {{host}}/chat/restaurant/message/send
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "sessionId": {{chat_session_id}},
+  "content": "Расскажите о вашем ресторане. Какие у вас часы работы?"
+}
+
+### 21. Chat: Check my reservations (triggers get_my_reservations tool)
+# @name chatCheckReservations
+POST {{host}}/chat/restaurant/message/send
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "sessionId": {{chat_session_id}},
+  "content": "Можете показать мои бронирования? Мой телефон +79165551234"
+}
+
+### 22. Chat: Cancel reservation (triggers cancel_reservation tool)
+# @name chatCancelReservation
+POST {{host}}/chat/restaurant/message/send
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "sessionId": {{chat_session_id}},
+  "content": "Я хочу отменить бронь. Мой номер телефона +79165551234"
+}
+
+### 23. Get all messages from chat session
+GET {{host}}/chat/restaurant/session/{{chat_session_id}}/messages
+Authorization: Bearer {{auth_token}}
+
+### 24. Close chat session
+POST {{host}}/chat/restaurant/session/close/{{chat_session_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+### ============================================
+### CHAT SCENARIOS - ENGLISH LANGUAGE
+### ============================================
+
+### 25. Start new chat session for English tests
+# @name startEnglishChatSession
+POST {{host}}/chat/restaurant/session/start
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "restaurantId": {{restaurant_id}}
+}
+
+> {%
+    client.global.set("english_chat_session_id", response.body.data.id);
+%}
+
+### 26. Chat: Ask about availability in English
+POST {{host}}/chat/restaurant/message/send
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "sessionId": {{english_chat_session_id}},
+  "content": "Hi! Do you have any tables available for tomorrow evening for 2 people?"
+}
+
+### 27. Chat: Make reservation in English
+POST {{host}}/chat/restaurant/message/send
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "sessionId": {{english_chat_session_id}},
+  "content": "I'd like to book a table for November 30th at 7pm for 2 guests. My name is John Smith and my phone number is +79169998877"
+}
+
+### 28. Chat: Check reservation in English
+POST {{host}}/chat/restaurant/message/send
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "sessionId": {{english_chat_session_id}},
+  "content": "Can you show me my reservations? My phone is +79169998877"
+}
+
+### 29. Close English chat session
+POST {{host}}/chat/restaurant/session/close/{{english_chat_session_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+### ============================================
+### TABLE CHAT SESSIONS (Legacy)
+### ============================================
+
+### 30. Start a table chat session
+# @name startTableChat
+POST {{host}}/chat/table/session/start
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "tableId": {{table_id}},
+  "restaurantId": {{restaurant_id}}
+}
+
+> {%
+    client.global.set("table_chat_session_id", response.body.data.id);
+%}
+
+### 31. Send message from table
+POST {{host}}/chat/table/message/send
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "sessionId": {{table_chat_session_id}},
+  "content": "Здравствуйте! Какие у вас есть свободные столики на эту пятницу?"
+}
+
+### 32. Get messages from table session
+GET {{host}}/chat/table/session/{{table_chat_session_id}}/messages
+Authorization: Bearer {{auth_token}}
+
+### 33. Get all sessions for table
+GET {{host}}/chat/table/session/{{table_id}}
+Authorization: Bearer {{auth_token}}
+
+### 34. Close table chat session
+POST {{host}}/chat/table/session/close/{{table_chat_session_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+### ============================================
+### CLEANUP - Delete test reservation
+### ============================================
+
+### 35. Delete reservation (PROTECTED)
+DELETE {{host}}/reservations/{{reservation_id}}
+Authorization: Bearer {{auth_token}}

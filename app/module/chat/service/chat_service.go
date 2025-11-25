@@ -1,52 +1,72 @@
+// Package service содержит бизнес-логику для модуля чата.
+// Управляет сессиями чата, обрабатывает сообщения и интегрируется с AI.
 package service
 
 import (
+	"context"
 	"errors"
 	"savory-ai-server/app/module/chat/payload"
 	"savory-ai-server/app/module/chat/repository"
+	"savory-ai-server/app/module/chat/service/ai"
 	"savory-ai-server/app/module/table/service"
 	"savory-ai-server/app/storage"
 	"time"
 )
 
+// chatService реализует интерфейс ChatService.
+// Содержит зависимости от репозитория, сервиса столиков и AI-сервиса.
 type chatService struct {
-	chatRepo     repository.ChatRepository
-	tableService service.TableService
+	chatRepo         repository.ChatRepository  // Репозиторий для работы с БД
+	tableService     service.TableService       // Сервис для проверки существования столиков
+	anthropicService *ai.AnthropicService       // Сервис интеграции с Anthropic Claude (может быть nil)
 }
 
+// ChatService определяет интерфейс бизнес-логики для чата.
+// Разделён на две группы методов: Table Chat и Restaurant Chat.
 type ChatService interface {
-	// Message operations for tables
-	StartTableSession(req *payload.StartTableSessionReq) (*payload.TableChatSessionsResp, error)
-	CloseSessionFromTable(sessionID uint) error
-	MessageFromTable(req *payload.SendTableMessageReq) (*payload.MessagesRespFormBot, error)
-	GetTableMessagesFromSession(sessionID uint) (*payload.TableChatMessagesResp, error)
-	GetRestaurantChats(restaurantID uint) (*payload.RestaurantChatSessionsResp, error)
-	GetSessionsFromTable(tableID uint) (*payload.TableChatSessionsByTableIDResp, error)
+	// =====================================================
+	// Table Chat - чат для посетителей за столиком
+	// =====================================================
+	StartTableSession(req *payload.StartTableSessionReq) (*payload.TableChatSessionsResp, error)     // Создать сессию
+	CloseSessionFromTable(sessionID uint) error                                                       // Закрыть сессию
+	MessageFromTable(req *payload.SendTableMessageReq) (*payload.MessagesRespFormBot, error)         // Отправить сообщение
+	GetTableMessagesFromSession(sessionID uint) (*payload.TableChatMessagesResp, error)              // Получить историю
+	GetRestaurantChats(restaurantID uint) (*payload.RestaurantChatSessionsResp, error)               // Legacy: получить чаты
+	GetSessionsFromTable(tableID uint) (*payload.TableChatSessionsByTableIDResp, error)              // Получить сессии столика
 
-	// Message operations for restaurants
-	StartRestaurantSession(req *payload.StartRestaurantSessionReq) (*payload.RestaurantChatSessionResp, error)
-	CloseRestaurantSession(sessionID uint) error
-	MessageFromRestaurant(req *payload.SendRestaurantMessageReq) (*payload.RestaurantMessagesRespFormBot, error)
-	GetRestaurantMessagesFromSession(sessionID uint) (*payload.RestaurantChatMessagesResp, error)
-	GetRestaurantSessions(restaurantID uint) (*payload.RestaurantChatSessionsResp, error)
+	// =====================================================
+	// Restaurant Chat - общий чат с рестораном
+	// =====================================================
+	StartRestaurantSession(req *payload.StartRestaurantSessionReq) (*payload.RestaurantChatSessionResp, error)   // Создать сессию
+	CloseRestaurantSession(sessionID uint) error                                                                  // Закрыть сессию
+	MessageFromRestaurant(req *payload.SendRestaurantMessageReq) (*payload.RestaurantMessagesRespFormBot, error) // Отправить сообщение
+	GetRestaurantMessagesFromSession(sessionID uint) (*payload.RestaurantChatMessagesResp, error)                // Получить историю
+	GetRestaurantSessions(restaurantID uint) (*payload.RestaurantChatSessionsResp, error)                        // Получить сессии
 }
 
-func NewChatService(chatRepo repository.ChatRepository, tableService service.TableService) ChatService {
+// NewChatService создаёт новый экземпляр сервиса чата.
+// anthropicService может быть nil - тогда используются простые ответы бота.
+func NewChatService(chatRepo repository.ChatRepository, tableService service.TableService, anthropicService *ai.AnthropicService) ChatService {
 	return &chatService{
-		chatRepo:     chatRepo,
-		tableService: tableService,
+		chatRepo:         chatRepo,
+		tableService:     tableService,
+		anthropicService: anthropicService,
 	}
 }
 
-// ----------------------- Table Chat Methods ----------------------
+// =====================================================
+// Table Chat Methods - чат для посетителей за столиком
+// =====================================================
 
-// GetRestaurantChats gets table chat sessions for a restaurant (legacy method)
+// GetRestaurantChats возвращает чат-сессии ресторана.
+// Legacy метод - используйте GetRestaurantSessions вместо него.
 func (s *chatService) GetRestaurantChats(restaurantID uint) (*payload.RestaurantChatSessionsResp, error) {
 	// This method is now a wrapper around GetRestaurantSessions for backward compatibility
 	return s.GetRestaurantSessions(restaurantID)
 }
 
-// StartTableSession создание чата посетителем для столика в ресторане
+// StartTableSession создаёт новую сессию чата для столика.
+// Проверяет существование столика перед созданием сессии.
 func (s *chatService) StartTableSession(req *payload.StartTableSessionReq) (*payload.TableChatSessionsResp, error) {
 	// Check if table exists
 	_, err := s.tableService.GetByID(req.TableID)
@@ -82,12 +102,20 @@ func (s *chatService) StartTableSession(req *payload.StartTableSessionReq) (*pay
 	return resp, nil
 }
 
-// CloseSessionFromTable закрытие сессии чата для столика
+// CloseSessionFromTable закрывает сессию чата для столика.
+// Устанавливает флаг active = false.
 func (s *chatService) CloseSessionFromTable(sessionID uint) error {
 	return s.chatRepo.CloseTableSession(sessionID)
 }
 
-// MessageFromTable сообщения, которые отправляют клиенты и получают от бота
+// MessageFromTable обрабатывает сообщение от посетителя столика.
+// Процесс:
+//  1. Проверяет что сессия существует и активна
+//  2. Сохраняет сообщение пользователя
+//  3. Получает историю чата для контекста AI
+//  4. Генерирует ответ через Anthropic Claude (или fallback на простые ответы)
+//  5. Сохраняет ответ бота
+//  6. Обновляет время активности сессии
 func (s *chatService) MessageFromTable(req *payload.SendTableMessageReq) (*payload.MessagesRespFormBot, error) {
 	// Check if the session exists and is active
 	session, err := s.chatRepo.FindTableSessionByID(req.SessionID)
@@ -114,7 +142,38 @@ func (s *chatService) MessageFromTable(req *payload.SendTableMessageReq) (*paylo
 		return nil, err
 	}
 
-	messageFromBot, _ := generateBotResponse(createdUserMessage.Content)
+	// Get chat history for context
+	chatHistory, err := s.chatRepo.GetMessagesBySessionID(req.SessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert to AI message format
+	var aiMessages []ai.ChatMessage
+	for _, msg := range chatHistory {
+		role := "user"
+		if msg.AuthorType == storage.BotAuthor {
+			role = "assistant"
+		}
+		aiMessages = append(aiMessages, ai.ChatMessage{
+			Role:    role,
+			Content: msg.Content,
+		})
+	}
+
+	// Generate AI response
+	var messageFromBot string
+	if s.anthropicService != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		messageFromBot, err = s.anthropicService.GenerateResponse(ctx, session.RestaurantID, aiMessages)
+		if err != nil {
+			// Fallback to simple response on error
+			messageFromBot, _ = generateBotResponse(createdUserMessage.Content)
+		}
+	} else {
+		messageFromBot, _ = generateBotResponse(createdUserMessage.Content)
+	}
 
 	botMessage := &storage.TableChatMessage{
 		TableID:       session.TableID,
@@ -145,7 +204,8 @@ func (s *chatService) MessageFromTable(req *payload.SendTableMessageReq) (*paylo
 	}, nil
 }
 
-// GetTableMessagesFromSession получение сообщений из сессии чата для столика
+// GetTableMessagesFromSession возвращает историю сообщений из сессии чата столика.
+// Включает сообщения пользователя (UserAuthor) и ответы бота (BotAuthor).
 func (s *chatService) GetTableMessagesFromSession(sessionID uint) (*payload.TableChatMessagesResp, error) {
 	// Get messages from a repository
 	messages, err := s.chatRepo.GetMessagesBySessionID(sessionID)
@@ -169,7 +229,9 @@ func (s *chatService) GetTableMessagesFromSession(sessionID uint) (*payload.Tabl
 	}, nil
 }
 
-// GetSessionsFromTable получение сессий чата для столика
+// GetSessionsFromTable возвращает все чат-сессии для указанного столика.
+// Включает историю сообщений для каждой сессии.
+// Пропускает сессии без сообщений.
 func (s *chatService) GetSessionsFromTable(tableID uint) (*payload.TableChatSessionsByTableIDResp, error) {
 	// Get sessions from a repository
 	sessions, err := s.chatRepo.GetSessionsByTableID(tableID)
@@ -210,9 +272,12 @@ func (s *chatService) GetSessionsFromTable(tableID uint) (*payload.TableChatSess
 	}, nil
 }
 
-// ----------------------- Restaurant Chat Methods ----------------------
+// =====================================================
+// Restaurant Chat Methods - общий чат с рестораном
+// =====================================================
 
-// StartRestaurantSession создание чата для ресторана
+// StartRestaurantSession создаёт новую сессию общего чата для ресторана.
+// Используется для бронирования столиков и вопросов через AI-бота.
 func (s *chatService) StartRestaurantSession(req *payload.StartRestaurantSessionReq) (*payload.RestaurantChatSessionResp, error) {
 	// Create new session
 	session := &storage.RestaurantChatSessions{
@@ -241,12 +306,27 @@ func (s *chatService) StartRestaurantSession(req *payload.StartRestaurantSession
 	return resp, nil
 }
 
-// CloseRestaurantSession закрытие сессии чата для ресторана
+// CloseRestaurantSession закрывает сессию чата ресторана.
+// Устанавливает флаг active = false.
 func (s *chatService) CloseRestaurantSession(sessionID uint) error {
 	return s.chatRepo.CloseRestaurantSession(sessionID)
 }
 
-// MessageFromRestaurant сообщения, которые отправляют клиенты и получают от бота
+// MessageFromRestaurant обрабатывает сообщение пользователя в чате ресторана.
+// Основной метод для взаимодействия с AI-ботом.
+//
+// Процесс:
+//  1. Проверяет что сессия существует и активна
+//  2. Сохраняет сообщение пользователя
+//  3. Получает историю чата для контекста AI
+//  4. Генерирует ответ через Anthropic Claude с поддержкой tool calling:
+//     - get_available_slots: проверка доступных слотов
+//     - create_reservation: создание бронирования
+//     - get_my_reservations: получение броней по телефону
+//     - cancel_reservation: отмена брони
+//     - get_restaurant_info: информация о ресторане
+//  5. Сохраняет ответ бота
+//  6. Обновляет время активности сессии
 func (s *chatService) MessageFromRestaurant(req *payload.SendRestaurantMessageReq) (*payload.RestaurantMessagesRespFormBot, error) {
 	// Check if the session exists and is active
 	session, err := s.chatRepo.FindRestaurantSessionByID(req.SessionID)
@@ -272,7 +352,38 @@ func (s *chatService) MessageFromRestaurant(req *payload.SendRestaurantMessageRe
 		return nil, err
 	}
 
-	messageFromBot, _ := generateBotResponse(createdUserMessage.Content)
+	// Get chat history for context
+	chatHistory, err := s.chatRepo.GetRestaurantMessagesBySessionID(req.SessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert to AI message format
+	var aiMessages []ai.ChatMessage
+	for _, msg := range chatHistory {
+		role := "user"
+		if msg.AuthorType == storage.BotAuthor {
+			role = "assistant"
+		}
+		aiMessages = append(aiMessages, ai.ChatMessage{
+			Role:    role,
+			Content: msg.Content,
+		})
+	}
+
+	// Generate AI response
+	var messageFromBot string
+	if s.anthropicService != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		messageFromBot, err = s.anthropicService.GenerateResponse(ctx, session.RestaurantID, aiMessages)
+		if err != nil {
+			// Fallback to simple response on error
+			messageFromBot, _ = generateBotResponse(createdUserMessage.Content)
+		}
+	} else {
+		messageFromBot, _ = generateBotResponse(createdUserMessage.Content)
+	}
 
 	botMessage := &storage.RestaurantChatMessage{
 		RestaurantID:  session.RestaurantID,
@@ -302,7 +413,8 @@ func (s *chatService) MessageFromRestaurant(req *payload.SendRestaurantMessageRe
 	}, nil
 }
 
-// GetRestaurantMessagesFromSession получение сообщений из сессии чата для ресторана
+// GetRestaurantMessagesFromSession возвращает историю сообщений из сессии чата.
+// Включает сообщения пользователя (UserAuthor) и ответы бота (BotAuthor).
 func (s *chatService) GetRestaurantMessagesFromSession(sessionID uint) (*payload.RestaurantChatMessagesResp, error) {
 	// Get messages from a repository
 	messages, err := s.chatRepo.GetRestaurantMessagesBySessionID(sessionID)
@@ -326,7 +438,9 @@ func (s *chatService) GetRestaurantMessagesFromSession(sessionID uint) (*payload
 	}, nil
 }
 
-// GetRestaurantSessions получение сессий чата для ресторана
+// GetRestaurantSessions возвращает все чат-сессии для указанного ресторана.
+// Включает историю сообщений для каждой сессии.
+// Пропускает сессии без сообщений.
 func (s *chatService) GetRestaurantSessions(restaurantID uint) (*payload.RestaurantChatSessionsResp, error) {
 	// Get sessions from a repository
 	sessions, err := s.chatRepo.FindRestaurantSessionByRestaurantID(restaurantID)

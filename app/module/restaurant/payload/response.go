@@ -19,17 +19,18 @@ type OrganizationResp struct {
 
 // RestaurantResp represents a restaurant in a response
 type RestaurantResp struct {
-	ID           uint              `json:"id"`
-	CreatedAt    time.Time         `json:"created_at"`
-	Organization OrganizationResp  `json:"organization"`
-	Name         string            `json:"name"`
-	Address      string            `json:"address"`
-	Phone        string            `json:"phone"`
-	Website      string            `json:"website"`
-	Description  string            `json:"description"`
-	ImageURL     string            `json:"image_url"`
-	Menu         string            `json:"menu,omitempty"`
-	WorkingHours []WorkingHourResp `json:"working_hours"`
+	ID                  uint              `json:"id"`
+	CreatedAt           time.Time         `json:"created_at"`
+	Organization        OrganizationResp  `json:"organization"`
+	Name                string            `json:"name"`
+	Address             string            `json:"address"`
+	Phone               string            `json:"phone"`
+	Website             string            `json:"website"`
+	Description         string            `json:"description"`
+	ImageURL            string            `json:"image_url"`
+	Menu                string            `json:"menu,omitempty"`
+	ReservationDuration int               `json:"reservation_duration"`
+	WorkingHours        []WorkingHourResp `json:"working_hours"`
 }
 
 // RestaurantsResp represents a list of restaurants in a response

@@ -44,6 +44,11 @@ type logger = struct {
 	Prettier   bool          `toml:"prettier"`
 }
 
+// anthropic config
+type anthropic = struct {
+	APIKey string `toml:"api_key"`
+}
+
 // middleware
 type middleware = struct {
 	Compress struct {
@@ -89,6 +94,7 @@ type Config struct {
 	DB         db
 	Logger     logger
 	Middleware middleware
+	Anthropic  anthropic
 }
 
 // func to parse config

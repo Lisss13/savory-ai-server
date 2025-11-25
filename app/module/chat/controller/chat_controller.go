@@ -8,35 +8,51 @@ import (
 	"strconv"
 )
 
+// chatController реализует интерфейс ChatController.
 type chatController struct {
 	chatService service.ChatService
 }
 
+// ChatController определяет интерфейс HTTP-обработчиков для чата.
+// Разделён на две группы: Table Chat и Restaurant Chat.
 type ChatController interface {
-	GetRestaurantChats(ctx *fiber.Ctx) error
-	// Чаты для столиков в ресторане
-	StartSessionFromTable(ctx *fiber.Ctx) error
-	CloseSessionFromTable(ctx *fiber.Ctx) error
-	MessageFromTable(ctx *fiber.Ctx) error
-	GetMessageFromTableSession(ctx *fiber.Ctx) error
-	GetSessionsFromTable(ctx *fiber.Ctx) error
+	// Legacy endpoint
+	GetRestaurantChats(ctx *fiber.Ctx) error // Получить чаты ресторана (устаревший)
 
-	// Чаты для ресторанов
-	StartRestaurantSession(ctx *fiber.Ctx) error
-	CloseRestaurantSession(ctx *fiber.Ctx) error
-	MessageFromRestaurant(ctx *fiber.Ctx) error
-	GetRestaurantMessagesFromSession(ctx *fiber.Ctx) error
-	GetRestaurantSessions(ctx *fiber.Ctx) error
+	// =====================================================
+	// Table Chat - чат для посетителей за столиком
+	// =====================================================
+	StartSessionFromTable(ctx *fiber.Ctx) error       // Начать сессию чата для столика
+	CloseSessionFromTable(ctx *fiber.Ctx) error       // Закрыть сессию чата
+	MessageFromTable(ctx *fiber.Ctx) error            // Отправить сообщение → получить ответ AI
+	GetMessageFromTableSession(ctx *fiber.Ctx) error  // Получить историю сообщений сессии
+	GetSessionsFromTable(ctx *fiber.Ctx) error        // Получить все сессии столика
+
+	// =====================================================
+	// Restaurant Chat - общий чат с рестораном
+	// =====================================================
+	StartRestaurantSession(ctx *fiber.Ctx) error          // Начать сессию чата
+	CloseRestaurantSession(ctx *fiber.Ctx) error          // Закрыть сессию чата
+	MessageFromRestaurant(ctx *fiber.Ctx) error           // Отправить сообщение → получить ответ AI
+	GetRestaurantMessagesFromSession(ctx *fiber.Ctx) error // Получить историю сообщений
+	GetRestaurantSessions(ctx *fiber.Ctx) error           // Получить все сессии ресторана
 }
 
+// NewChatController создаёт новый экземпляр контроллера чата.
 func NewChatController(service service.ChatService) ChatController {
 	return &chatController{
 		chatService: service,
 	}
 }
 
-// ----------------------- Table Chat Methods ----------------------
+// =====================================================
+// Table Chat Methods - чат для посетителей за столиком
+// =====================================================
 
+// GetRestaurantChats возвращает все чат-сессии ресторана.
+// Legacy endpoint, используйте GetRestaurantSessions вместо него.
+//
+// Метод: GET /chat/restaurant/:restaurant_id
 func (c *chatController) GetRestaurantChats(ctx *fiber.Ctx) error {
 	restaurantID, err := strconv.ParseUint(ctx.Params("restaurant_id"), 10, 32)
 	if err != nil {
@@ -58,7 +74,12 @@ func (c *chatController) GetRestaurantChats(ctx *fiber.Ctx) error {
 	})
 }
 
-// StartSessionFromTable создание чата посетителем для столика в ресторане
+// StartSessionFromTable создаёт новую сессию чата для столика.
+// Вызывается посетителем при сканировании QR-кода столика.
+//
+// Метод: POST /chat/table/session/start
+// Тело запроса: { tableId, restaurantId }
+// Ответ: Данные созданной сессии
 func (c *chatController) StartSessionFromTable(ctx *fiber.Ctx) error {
 	req := new(payload.StartTableSessionReq)
 	if err := ctx.BodyParser(req); err != nil {
@@ -85,6 +106,10 @@ func (c *chatController) StartSessionFromTable(ctx *fiber.Ctx) error {
 	})
 }
 
+// CloseSessionFromTable закрывает сессию чата для столика.
+// После закрытия отправка сообщений в эту сессию невозможна.
+//
+// Метод: POST /chat/table/session/close/:session_id
 func (c *chatController) CloseSessionFromTable(ctx *fiber.Ctx) error {
 	sessionID, err := strconv.ParseUint(ctx.Params("session_id"), 10, 32)
 	if err != nil {
@@ -104,7 +129,13 @@ func (c *chatController) CloseSessionFromTable(ctx *fiber.Ctx) error {
 	})
 }
 
-// MessageFromTable сообщения, которые отправляют клиенты
+// MessageFromTable обрабатывает сообщение от посетителя и генерирует ответ AI.
+// Сохраняет сообщение пользователя, генерирует ответ через Anthropic Claude,
+// сохраняет ответ бота и возвращает его клиенту.
+//
+// Метод: POST /chat/table/message/send
+// Тело запроса: { sessionId, content }
+// Ответ: Сообщение от AI-бота
 func (c *chatController) MessageFromTable(ctx *fiber.Ctx) error {
 	req := new(payload.SendTableMessageReq)
 	if err := ctx.BodyParser(req); err != nil {
@@ -131,6 +162,10 @@ func (c *chatController) MessageFromTable(ctx *fiber.Ctx) error {
 	})
 }
 
+// GetMessageFromTableSession возвращает историю сообщений из сессии чата.
+// Включает сообщения пользователя и ответы AI-бота.
+//
+// Метод: GET /chat/table/session/:session_id/messages
 func (c *chatController) GetMessageFromTableSession(ctx *fiber.Ctx) error {
 	sessionID, err := strconv.ParseUint(ctx.Params("session_id"), 10, 32)
 	if err != nil {
@@ -152,6 +187,10 @@ func (c *chatController) GetMessageFromTableSession(ctx *fiber.Ctx) error {
 	})
 }
 
+// GetSessionsFromTable возвращает все чат-сессии для указанного столика.
+// Используется персоналом для просмотра истории общения посетителей.
+//
+// Метод: GET /chat/table/session/:table_id
 func (c *chatController) GetSessionsFromTable(ctx *fiber.Ctx) error {
 	tableID, err := strconv.ParseUint(ctx.Params("table_id"), 10, 32)
 	if err != nil {
@@ -173,9 +212,16 @@ func (c *chatController) GetSessionsFromTable(ctx *fiber.Ctx) error {
 	})
 }
 
-// ----------------------- Restaurant Chat Methods ----------------------
+// =====================================================
+// Restaurant Chat Methods - общий чат с рестораном
+// =====================================================
 
-// StartRestaurantSession создание чата для ресторана
+// StartRestaurantSession создаёт новую сессию чата для ресторана.
+// Используется для общего чата с AI-ботом ресторана (бронирование, вопросы).
+//
+// Метод: POST /chat/restaurant/session/start
+// Тело запроса: { restaurantId }
+// Ответ: Данные созданной сессии
 func (c *chatController) StartRestaurantSession(ctx *fiber.Ctx) error {
 	req := new(payload.StartRestaurantSessionReq)
 	if err := ctx.BodyParser(req); err != nil {
@@ -202,7 +248,10 @@ func (c *chatController) StartRestaurantSession(ctx *fiber.Ctx) error {
 	})
 }
 
-// CloseRestaurantSession закрытие сессии чата для ресторана
+// CloseRestaurantSession закрывает сессию чата ресторана.
+// После закрытия отправка сообщений в эту сессию невозможна.
+//
+// Метод: POST /chat/restaurant/session/close/:session_id
 func (c *chatController) CloseRestaurantSession(ctx *fiber.Ctx) error {
 	sessionID, err := strconv.ParseUint(ctx.Params("session_id"), 10, 32)
 	if err != nil {
@@ -222,7 +271,13 @@ func (c *chatController) CloseRestaurantSession(ctx *fiber.Ctx) error {
 	})
 }
 
-// MessageFromRestaurant сообщения, которые отправляют клиенты
+// MessageFromRestaurant обрабатывает сообщение пользователя и генерирует ответ AI.
+// Основной метод для взаимодействия с AI-ботом ресторана.
+// Поддерживает tool calling для бронирования столиков через Anthropic Claude.
+//
+// Метод: POST /chat/restaurant/message/send
+// Тело запроса: { sessionId, content }
+// Ответ: Сообщение от AI-бота (может включать результаты бронирования)
 func (c *chatController) MessageFromRestaurant(ctx *fiber.Ctx) error {
 	req := new(payload.SendRestaurantMessageReq)
 	if err := ctx.BodyParser(req); err != nil {
@@ -249,7 +304,10 @@ func (c *chatController) MessageFromRestaurant(ctx *fiber.Ctx) error {
 	})
 }
 
-// GetRestaurantMessagesFromSession получение сообщений из сессии чата для ресторана
+// GetRestaurantMessagesFromSession возвращает историю сообщений из сессии чата.
+// Включает сообщения пользователя и ответы AI-бота с информацией об авторе.
+//
+// Метод: GET /chat/restaurant/session/:session_id/messages
 func (c *chatController) GetRestaurantMessagesFromSession(ctx *fiber.Ctx) error {
 	sessionID, err := strconv.ParseUint(ctx.Params("session_id"), 10, 32)
 	if err != nil {
@@ -271,7 +329,10 @@ func (c *chatController) GetRestaurantMessagesFromSession(ctx *fiber.Ctx) error 
 	})
 }
 
-// GetRestaurantSessions получение сессий чата для ресторана
+// GetRestaurantSessions возвращает все чат-сессии для указанного ресторана.
+// Используется персоналом для мониторинга общения с посетителями.
+//
+// Метод: GET /chat/restaurant/sessions/:restaurant_id
 func (c *chatController) GetRestaurantSessions(ctx *fiber.Ctx) error {
 	restaurantID, err := strconv.ParseUint(ctx.Params("restaurant_id"), 10, 32)
 	if err != nil {

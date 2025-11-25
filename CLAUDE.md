@@ -352,6 +352,62 @@ r.ExampleRouter.RegisterExampleRoutes(authMiddleware)
 
 ## Соглашения по коду
 
+### Комментирование кода
+
+**ВАЖНО:** После каждого добавления или изменения кода необходимо писать комментарии для лучшего понимания работы кода.
+
+#### Обязательные комментарии:
+
+1. **Package** - описание назначения пакета в начале файла:
+```go
+// Package repository содержит слой доступа к данным для модуля бронирования.
+// Использует GORM для работы с PostgreSQL.
+package repository
+```
+
+2. **Интерфейсы** - описание назначения и группировка методов:
+```go
+// ReservationRepository определяет интерфейс для работы с бронированиями в БД.
+// Методы разделены на группы: CRUD операции и специализированные запросы.
+type ReservationRepository interface {
+    // =====================================================
+    // CRUD Operations
+    // =====================================================
+    Create(reservation *storage.Reservation) (*storage.Reservation, error)
+    // ...
+}
+```
+
+3. **Структуры** - описание полей:
+```go
+// Reservation данные бронирования столика.
+type Reservation struct {
+    ID              uint   `json:"id"`               // ID бронирования
+    CustomerName    string `json:"customer_name"`    // Имя клиента
+    CustomerPhone   string `json:"customer_phone"`   // Телефон для связи
+}
+```
+
+4. **Методы** - описание назначения, параметров, алгоритма (для сложных методов):
+```go
+// GetAvailableSlots возвращает доступные временные слоты для бронирования.
+// Алгоритм:
+//  1. Получает рабочие часы ресторана
+//  2. Находит подходящие столики
+//  3. Исключает занятые слоты
+//
+// Метод: GET /reservations/available/:restaurant_id
+func (s *reservationService) GetAvailableSlots(...) { }
+```
+
+5. **HTTP методы в контроллерах** - указывать метод и путь:
+```go
+// Create создаёт новое бронирование.
+// Метод: POST /reservations
+// Требует: JWT авторизация
+func (c *reservationController) Create(ctx *fiber.Ctx) error { }
+```
+
 ### Именование
 
 | Что | Формат | Пример |

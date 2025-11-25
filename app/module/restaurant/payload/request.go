@@ -9,25 +9,27 @@ type WorkingHourReq struct {
 
 // CreateRestaurantReq represents a request to create a new restaurant
 type CreateRestaurantReq struct {
-	OrganizationID uint             `json:"organization_id" validate:"required"`
-	Name           string           `json:"name" validate:"required"`
-	Address        string           `json:"address" validate:"required"`
-	Phone          string           `json:"phone" validate:"required"`
-	Website        string           `json:"website"`
-	Description    string           `json:"description"`
-	ImageURL       string           `json:"image_url"`
-	Menu           string           `json:"menu,omitempty"`
-	WorkingHours   []WorkingHourReq `json:"working_hours" validate:"required"`
+	OrganizationID      uint             `json:"organization_id" validate:"required"`
+	Name                string           `json:"name" validate:"required"`
+	Address             string           `json:"address" validate:"required"`
+	Phone               string           `json:"phone" validate:"required"`
+	Website             string           `json:"website"`
+	Description         string           `json:"description"`
+	ImageURL            string           `json:"image_url"`
+	Menu                string           `json:"menu,omitempty"`
+	ReservationDuration int              `json:"reservation_duration" validate:"omitempty,min=30,max=480"` // Duration in minutes (30min - 8 hours)
+	WorkingHours        []WorkingHourReq `json:"working_hours" validate:"required"`
 }
 
 // UpdateRestaurantReq represents a request to update an existing restaurant
 type UpdateRestaurantReq struct {
-	OrganizationID uint   `json:"organization_id" validate:"required"`
-	Name           string `json:"name" validate:"required"`
-	Address        string `json:"address" validate:"required"`
-	Phone          string `json:"phone" validate:"required"`
-	Website        string `json:"website"`
-	Description    string `json:"description"`
-	ImageURL       string `json:"image_url"`
-	Menu           string `json:"menu,omitempty"`
+	OrganizationID      uint   `json:"organization_id" validate:"required"`
+	Name                string `json:"name" validate:"required"`
+	Address             string `json:"address" validate:"required"`
+	Phone               string `json:"phone" validate:"required"`
+	Website             string `json:"website"`
+	Description         string `json:"description"`
+	ImageURL            string `json:"image_url"`
+	Menu                string `json:"menu,omitempty"`
+	ReservationDuration int    `json:"reservation_duration" validate:"omitempty,min=30,max=480"`
 }
