@@ -27,24 +27,27 @@ func NewQuestionController(service service.QuestionService) QuestionController {
 	}
 }
 
+// GetAll возвращает вопросы организации с опциональной фильтрацией.
+//
+// Query параметры:
+//   - language: код языка для фильтрации (например: "en", "ru")
+//   - chat_type: тип чата для фильтрации ("reservation" или "menu")
+//
+// Примеры запросов:
+//   - GET /questions — все вопросы организации
+//   - GET /questions?language=ru — вопросы на русском языке
+//   - GET /questions?chat_type=reservation — вопросы для чата бронирования
+//   - GET /questions?language=ru&chat_type=reservation — комбинированный фильтр
 func (c *questionController) GetAll(ctx *fiber.Ctx) error {
-	// Get organization ID from a JWT token
+	// Получаем ID организации из JWT токена
 	user := ctx.Locals("user").(jwt.JWTData)
 
-	// Check if a language query parameter is provided
+	// Получаем параметры фильтрации из query string
 	languageCode := ctx.Query("language")
+	chatType := ctx.Query("chat_type")
 
-	var questions *payload.QuestionsResp
-	var err error
-
-	if languageCode != "" {
-		// Get questions by organization ID and language
-		questions, err = c.questionService.GetByOrganizationIDAndLanguage(user.CompanyID, languageCode)
-	} else {
-		// Get all questions for the organization
-		questions, err = c.questionService.GetByOrganizationID(user.CompanyID)
-	}
-
+	// Используем метод с комбинированной фильтрацией
+	questions, err := c.questionService.GetByFilters(user.CompanyID, languageCode, chatType)
 	if err != nil {
 		return err
 	}

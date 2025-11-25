@@ -846,6 +846,14 @@ components:
           description: Текст вопроса
         language:
           $ref: '#/components/schemas/LanguageResponse'
+        chat_type:
+          type: string
+          enum: [reservation, menu]
+          description: |
+            Тип чата, для которого предназначен вопрос:
+            - `reservation` — вопросы для чата бронирования столиков
+            - `menu` — вопросы для чата с информацией о меню
+          example: menu
 
     CreateQuestionRequest:
       type: object
@@ -858,8 +866,17 @@ components:
           description: Текст вопроса
         languageCode:
           type: string
-          description: Код языка (если не указан, используется язык по умолчанию)
+          description: Код языка (если не указан, вопрос будет универсальным)
           example: en
+        chatType:
+          type: string
+          enum: [reservation, menu]
+          description: |
+            Тип чата для вопроса:
+            - `reservation` — для чата бронирования
+            - `menu` — для чата с информацией о меню (по умолчанию)
+          default: menu
+          example: menu
 
     UpdateQuestionRequest:
       type: object
@@ -870,7 +887,11 @@ components:
           description: Новый текст вопроса
         languageCode:
           type: string
-          description: Код языка
+          description: Код языка (пустая строка удаляет привязку к языку)
+        chatType:
+          type: string
+          enum: [reservation, menu]
+          description: Новый тип чата для вопроса
 
     # ==================== Chat ====================
     StartTableSessionRequest:
@@ -2763,11 +2784,38 @@ paths:
     get:
       tags:
         - Question
-      summary: Получить все вопросы
-      description: Возвращает список всех вопросов для чат-бота организации.
+      summary: Получить вопросы с фильтрацией
+      description: |
+        Возвращает список вопросов для чат-бота организации.
+        Поддерживает фильтрацию по языку и типу чата.
+
+        **Примеры запросов:**
+        - `GET /questions` — все вопросы организации
+        - `GET /questions?language=ru` — вопросы на русском языке
+        - `GET /questions?chat_type=reservation` — вопросы для бронирования
+        - `GET /questions?language=ru&chat_type=reservation` — комбинированный фильтр
       operationId: getAllQuestions
       security:
         - BearerAuth: []
+      parameters:
+        - name: language
+          in: query
+          required: false
+          description: Код языка для фильтрации (например, en, ru)
+          schema:
+            type: string
+          example: ru
+        - name: chat_type
+          in: query
+          required: false
+          description: |
+            Тип чата для фильтрации:
+            - `reservation` — вопросы для чата бронирования
+            - `menu` — вопросы для чата с информацией о меню
+          schema:
+            type: string
+            enum: [reservation, menu]
+          example: menu
       responses:
         '200':
           description: Список вопросов
@@ -2789,7 +2837,10 @@ paths:
       tags:
         - Question
       summary: Создать вопрос
-      description: Создаёт новый вопрос для чат-бота на указанном языке.
+      description: |
+        Создаёт новый вопрос для чат-бота.
+        Можно указать язык и тип чата (reservation/menu).
+        По умолчанию тип чата — "menu".
       operationId: createQuestion
       security:
         - BearerAuth: []
@@ -2849,7 +2900,9 @@ paths:
       tags:
         - Question
       summary: Обновить вопрос
-      description: Обновляет текст вопроса.
+      description: |
+        Обновляет вопрос: текст, язык и/или тип чата.
+        Для удаления привязки к языку передать пустую строку в languageCode.
       operationId: updateQuestion
       security:
         - BearerAuth: []

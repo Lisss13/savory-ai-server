@@ -24,6 +24,9 @@ type QuestionService interface {
 	GetByID(id uint) (*payload.QuestionResp, error)
 	GetByOrganizationID(id uint) (*payload.QuestionsResp, error)
 	GetByOrganizationIDAndLanguage(id uint, languageCode string) (*payload.QuestionsResp, error)
+	// GetByFilters возвращает вопросы с фильтрацией по языку и типу чата.
+	// Поддерживает комбинации фильтров: только язык, только тип чата, оба или ни одного.
+	GetByFilters(organizationID uint, languageCode string, chatType string) (*payload.QuestionsResp, error)
 	Create(req *payload.CreateQuestionReq, organizationID uint) (*payload.QuestionResp, error)
 	Update(id uint, req *payload.UpdateQuestionReq, organizationID uint) (*payload.QuestionResp, error)
 	Delete(id uint, organizationID uint) error
@@ -138,6 +141,35 @@ func (s *questionService) GetByOrganizationIDAndLanguage(id uint, languageCode s
 	}, nil
 }
 
+// GetByFilters возвращает вопросы с комбинированной фильтрацией по языку и типу чата.
+//
+// Бизнес-логика:
+// - Поддерживает фильтрацию по languageCode (код языка: "en", "ru")
+// - Поддерживает фильтрацию по chatType ("reservation" или "menu")
+// - Можно комбинировать фильтры или использовать по отдельности
+// - Пустые значения игнорируются (не фильтруют)
+//
+// Примеры:
+// - GetByFilters(1, "", "") — все вопросы организации
+// - GetByFilters(1, "ru", "") — вопросы на русском языке
+// - GetByFilters(1, "", "reservation") — вопросы для чата бронирования
+// - GetByFilters(1, "ru", "reservation") — русские вопросы для бронирования
+func (s *questionService) GetByFilters(organizationID uint, languageCode string, chatType string) (*payload.QuestionsResp, error) {
+	questions, err := s.questionRepo.FindByOrganizationIDLanguageAndChatType(organizationID, languageCode, chatType)
+	if err != nil {
+		return nil, err
+	}
+
+	var questionResps []payload.QuestionResp
+	for _, question := range questions {
+		questionResps = append(questionResps, mapQuestionToResponse(question))
+	}
+
+	return &payload.QuestionsResp{
+		Questions: questionResps,
+	}, nil
+}
+
 // Create создаёт новый вопрос для организации.
 //
 // Бизнес-логика:
@@ -155,9 +187,16 @@ func (s *questionService) GetByOrganizationIDAndLanguage(id uint, languageCode s
 // - Администратор создаёт вопрос "Как вам обслуживание?" с languageCode="ru"
 // - Вопрос будет показываться только гостям, выбравшим русский язык
 func (s *questionService) Create(req *payload.CreateQuestionReq, organizationID uint) (*payload.QuestionResp, error) {
+	// Определяем тип чата (по умолчанию "menu")
+	chatType := storage.ChatTypeMenu
+	if req.ChatType == "reservation" {
+		chatType = storage.ChatTypeReservation
+	}
+
 	question := &storage.Question{
 		Text:           req.Text,
 		OrganizationID: organizationID,
+		ChatType:       chatType,
 	}
 
 	// Если указан код языка — находим язык и привязываем к вопросу
@@ -235,6 +274,15 @@ func (s *questionService) Update(id uint, req *payload.UpdateQuestionReq, organi
 		}
 	}
 
+	// Обновляем тип чата если передан
+	if req.ChatType != nil {
+		if *req.ChatType == "reservation" {
+			question.ChatType = storage.ChatTypeReservation
+		} else if *req.ChatType == "menu" {
+			question.ChatType = storage.ChatTypeMenu
+		}
+	}
+
 	// Сохраняем изменения
 	updatedQuestion, err := s.questionRepo.Update(question)
 	if err != nil {
@@ -283,7 +331,7 @@ func (s *questionService) Delete(id uint, organizationID uint) error {
 // mapQuestionToResponse преобразует модель Question в DTO для ответа API.
 //
 // Преобразование:
-// - Копирует базовые поля: ID, CreatedAt, Text
+// - Копирует базовые поля: ID, CreatedAt, Text, ChatType
 // - Если к вопросу привязан язык — добавляет информацию о языке
 // - Если язык не привязан — поле Language будет nil в JSON (omitempty)
 //
@@ -293,6 +341,7 @@ func mapQuestionToResponse(question *storage.Question) payload.QuestionResp {
 		ID:        question.ID,
 		CreatedAt: question.CreatedAt,
 		Text:      question.Text,
+		ChatType:  string(question.ChatType),
 	}
 
 	// Добавляем информацию о языке, если она есть

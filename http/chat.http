@@ -16,7 +16,7 @@ Content-Type: application/json
 
 > {%
     client.global.set("auth_token", response.body.data.accessToken);
-    client.global.set("organization_id", response.body.data.user.organization.id);
+    client.global.set("organization_id", response.body.data.organization.id);
 %}
 
 ### 2. Get restaurants to use restaurant_id

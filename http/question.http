@@ -32,8 +32,8 @@ Content-Type: application/json
 ### ----------------------------------------
 
 ###
-# 1.1 Создать вопрос БЕЗ языка (универсальный)
-# Ожидание: 201, language: null
+# 1.1 Создать вопрос БЕЗ языка (универсальный) - тип по умолчанию "menu"
+# Ожидание: 201, language: null, chat_type: "menu"
 POST http://localhost:4000/questions
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
@@ -47,18 +47,22 @@ Authorization: Bearer {{auth_token}}
     client.test("Status is 201", function() {
         client.assert(response.status === 201, "Expected 201");
     });
+    client.test("Default chat_type is menu", function() {
+        client.assert(response.body.data.chat_type === "menu", "Expected chat_type 'menu'");
+    });
 %}
 
 ###
-# 1.2 Создать вопрос С языком EN
-# Ожидание: 201, language.code = "en"
+# 1.2 Создать вопрос С языком EN для МЕНЮ
+# Ожидание: 201, language.code = "en", chat_type = "menu"
 POST http://localhost:4000/questions
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 {
   "text": "What is your favorite dish?",
-  "languageCode": "en"
+  "languageCode": "en",
+  "chatType": "menu"
 }
 
 > {%
@@ -69,27 +73,77 @@ Authorization: Bearer {{auth_token}}
     client.test("Language is EN", function() {
         client.assert(response.body.data.language.code === "en", "Expected language code 'en'");
     });
+    client.test("ChatType is menu", function() {
+        client.assert(response.body.data.chat_type === "menu", "Expected chat_type 'menu'");
+    });
 %}
 
 ###
-# 1.3 Создать вопрос С языком RU
-# Ожидание: 201, language.code = "ru"
+# 1.3 Создать вопрос С языком RU для БРОНИРОВАНИЯ
+# Ожидание: 201, language.code = "ru", chat_type = "reservation"
+POST http://localhost:4000/questions
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "text": "Завтра есть свободные месте?",
+  "languageCode": "ru",
+  "chatType": "reservation"
+}
+
+> {%
+    client.global.set("question_ru_reservation_id", response.body.data.id);
+    client.test("Status is 201", function() {
+        client.assert(response.status === 201, "Expected 201");
+    });
+    client.test("Language is RU", function() {
+        client.assert(response.body.data.language.code === "ru", "Expected language code 'ru'");
+    });
+    client.test("ChatType is reservation", function() {
+        client.assert(response.body.data.chat_type === "reservation", "Expected chat_type 'reservation'");
+    });
+%}
+
+###
+# 1.4 Создать вопрос EN для БРОНИРОВАНИЯ
+# Ожидание: 201, chat_type = "reservation"
+POST http://localhost:4000/questions
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "text": "How many guests will be dining?",
+  "languageCode": "en",
+  "chatType": "reservation"
+}
+
+> {%
+    client.global.set("question_en_reservation_id", response.body.data.id);
+    client.test("Status is 201", function() {
+        client.assert(response.status === 201, "Expected 201");
+    });
+    client.test("ChatType is reservation", function() {
+        client.assert(response.body.data.chat_type === "reservation", "Expected chat_type 'reservation'");
+    });
+%}
+
+###
+# 1.5 Создать вопрос RU для МЕНЮ
+# Ожидание: 201, chat_type = "menu"
 POST http://localhost:4000/questions
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 {
   "text": "Какое ваше любимое блюдо?",
-  "languageCode": "ru"
+  "languageCode": "ru",
+  "chatType": "menu"
 }
 
 > {%
-    client.global.set("question_ru_id", response.body.data.id);
+    client.global.set("question_ru_menu_id", response.body.data.id);
     client.test("Status is 201", function() {
         client.assert(response.status === 201, "Expected 201");
-    });
-    client.test("Language is RU", function() {
-        client.assert(response.body.data.language.code === "ru", "Expected language code 'ru'");
     });
 %}
 
@@ -98,7 +152,7 @@ Authorization: Bearer {{auth_token}}
 ### ----------------------------------------
 
 ###
-# 2.1 Получить ВСЕ вопросы организации
+# 2.1 Получить ВСЕ вопросы организации (без фильтров)
 # Ожидание: 200, массив вопросов
 GET http://localhost:4000/questions
 Content-Type: application/json
@@ -111,10 +165,16 @@ Authorization: Bearer {{auth_token}}
     client.test("Has questions array", function() {
         client.assert(Array.isArray(response.body.data.questions), "Expected questions array");
     });
+    client.test("Questions have chat_type field", function() {
+        var questions = response.body.data.questions;
+        if (questions.length > 0) {
+            client.assert(questions[0].chat_type !== undefined, "Expected chat_type field");
+        }
+    });
 %}
 
 ###
-# 2.2 Получить вопросы с фильтром language=en (query param)
+# 2.2 Фильтр по языку: language=en
 # Ожидание: 200, только вопросы на английском
 GET http://localhost:4000/questions?language=en
 Content-Type: application/json
@@ -135,9 +195,69 @@ Authorization: Bearer {{auth_token}}
 %}
 
 ###
-# 2.3 Получить вопросы с фильтром language=ru (query param)
-# Ожидание: 200, только вопросы на русском
-GET http://localhost:4000/questions?language=ru
+# 2.3 Фильтр по типу чата: chat_type=reservation
+# Ожидание: 200, только вопросы для бронирования
+GET http://localhost:4000/questions?chat_type=reservation
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Status is 200", function() {
+        client.assert(response.status === 200, "Expected 200");
+    });
+    client.test("All questions are for reservation", function() {
+        var questions = response.body.data.questions;
+        for (var i = 0; i < questions.length; i++) {
+            client.assert(questions[i].chat_type === "reservation", "Expected only reservation questions");
+        }
+    });
+%}
+
+###
+# 2.4 Фильтр по типу чата: chat_type=menu
+# Ожидание: 200, только вопросы для меню
+GET http://localhost:4000/questions?chat_type=menu
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Status is 200", function() {
+        client.assert(response.status === 200, "Expected 200");
+    });
+    client.test("All questions are for menu", function() {
+        var questions = response.body.data.questions;
+        for (var i = 0; i < questions.length; i++) {
+            client.assert(questions[i].chat_type === "menu", "Expected only menu questions");
+        }
+    });
+%}
+
+###
+# 2.5 Комбинированный фильтр: language=ru + chat_type=reservation
+# Ожидание: 200, только русские вопросы для бронирования
+GET http://localhost:4000/questions?language=ru&chat_type=reservation
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Status is 200", function() {
+        client.assert(response.status === 200, "Expected 200");
+    });
+    client.test("All questions are RU + reservation", function() {
+        var questions = response.body.data.questions;
+        for (var i = 0; i < questions.length; i++) {
+            client.assert(questions[i].chat_type === "reservation", "Expected reservation chat_type");
+            if (questions[i].language) {
+                client.assert(questions[i].language.code === "ru", "Expected RU language");
+            }
+        }
+    });
+%}
+
+###
+# 2.6 Комбинированный фильтр: language=en + chat_type=menu
+# Ожидание: 200, только английские вопросы для меню
+GET http://localhost:4000/questions?language=en&chat_type=menu
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
@@ -224,28 +344,70 @@ Authorization: Bearer {{auth_token}}
 %}
 
 ###
-# 4.3 СМЕНИТЬ язык вопроса (en -> ru)
-# Ожидание: 200, язык изменён на ru
+# 4.3 СМЕНИТЬ тип чата (menu -> reservation)
+# Ожидание: 200, chat_type изменён на reservation
 PUT http://localhost:4000/questions/{{question_id}}
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 {
-  "text": "Обновлённый вопрос на русском",
-  "languageCode": "ru"
+  "chatType": "reservation"
 }
 
 > {%
     client.test("Status is 200", function() {
         client.assert(response.status === 200, "Expected 200");
     });
-    client.test("Language changed to RU", function() {
-        client.assert(response.body.data.language.code === "ru", "Language should be RU");
+    client.test("ChatType changed to reservation", function() {
+        client.assert(response.body.data.chat_type === "reservation", "ChatType should be reservation");
     });
 %}
 
 ###
-# 4.4 УДАЛИТЬ язык (сделать универсальным)
+# 4.4 СМЕНИТЬ тип чата обратно (reservation -> menu)
+# Ожидание: 200, chat_type изменён на menu
+PUT http://localhost:4000/questions/{{question_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "chatType": "menu"
+}
+
+> {%
+    client.test("Status is 200", function() {
+        client.assert(response.status === 200, "Expected 200");
+    });
+    client.test("ChatType changed to menu", function() {
+        client.assert(response.body.data.chat_type === "menu", "ChatType should be menu");
+    });
+%}
+
+###
+# 4.5 Обновить ВСЕ поля: текст, язык и тип чата
+# Ожидание: 200, все поля обновлены
+PUT http://localhost:4000/questions/{{question_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "text": "Обновлённый вопрос на русском для бронирования",
+  "languageCode": "ru",
+  "chatType": "reservation"
+}
+
+> {%
+    client.test("Status is 200", function() {
+        client.assert(response.status === 200, "Expected 200");
+    });
+    client.test("All fields updated", function() {
+        client.assert(response.body.data.language.code === "ru", "Language should be RU");
+        client.assert(response.body.data.chat_type === "reservation", "ChatType should be reservation");
+    });
+%}
+
+###
+# 4.6 УДАЛИТЬ язык (сделать универсальным)
 # Ожидание: 200, language = null
 PUT http://localhost:4000/questions/{{question_id}}
 Content-Type: application/json
@@ -265,7 +427,7 @@ Authorization: Bearer {{auth_token}}
 %}
 
 ###
-# 4.5 Обновить с НЕСУЩЕСТВУЮЩИМ языком
+# 4.7 Обновить с НЕСУЩЕСТВУЮЩИМ языком
 # Ожидание: ошибка "language not found"
 PUT http://localhost:4000/questions/{{question_id}}
 Content-Type: application/json
@@ -335,7 +497,19 @@ Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 ###
-# Удалить тестовый вопрос на русском
-DELETE http://localhost:4000/questions/{{question_ru_id}}
+# Удалить тестовый вопрос RU для бронирования
+DELETE http://localhost:4000/questions/{{question_ru_reservation_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+###
+# Удалить тестовый вопрос EN для бронирования
+DELETE http://localhost:4000/questions/{{question_en_reservation_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+###
+# Удалить тестовый вопрос RU для меню
+DELETE http://localhost:4000/questions/{{question_ru_menu_id}}
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
