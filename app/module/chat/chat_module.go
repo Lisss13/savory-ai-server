@@ -3,7 +3,7 @@
 //   - Table Chat: чат для посетителей, сидящих за столиком (через QR-код)
 //   - Restaurant Chat: общий чат с рестораном (через AI-бота)
 //
-// Интеграция с Anthropic Claude для генерации ответов и бронирования столиков.
+// Использует модуль ai_reservation для интеграции с Anthropic Claude.
 package chat
 
 import (
@@ -12,10 +12,6 @@ import (
 	"savory-ai-server/app/module/chat/controller"
 	chat_repo "savory-ai-server/app/module/chat/repository"
 	"savory-ai-server/app/module/chat/service"
-	"savory-ai-server/app/module/chat/service/ai"
-	reservationService "savory-ai-server/app/module/reservation/service"
-	restaurantService "savory-ai-server/app/module/restaurant/service"
-	"savory-ai-server/utils/config"
 )
 
 // ChatRouter содержит роутер Fiber и контроллеры для обработки HTTP-запросов чата.
@@ -32,25 +28,11 @@ func NewChatRouter(fiber *fiber.App, controller *controller.Controller) *ChatRou
 	}
 }
 
-// NewAnthropicService создаёт сервис интеграции с Anthropic Claude.
-// Возвращает nil если API ключ не настроен (fallback на простые ответы).
-// Используется для AI-генерации ответов и tool calling (бронирование столиков).
-func NewAnthropicService(
-	cfg *config.Config,
-	reservationSvc reservationService.ReservationService,
-	restaurantSvc restaurantService.RestaurantService,
-) *ai.AnthropicService {
-	if cfg.Anthropic.APIKey == "" {
-		return nil
-	}
-	return ai.NewAnthropicService(cfg, reservationSvc, restaurantSvc)
-}
-
 // ChatModule определяет FX-модуль для чата.
-// Регистрирует все зависимости: репозиторий, AI-сервис, сервис чата, контроллер и роутер.
+// Регистрирует зависимости: репозиторий, сервис чата, контроллер и роутер.
+// AI-сервис бронирования предоставляется модулем ai_reservation.
 var ChatModule = fx.Options(
 	fx.Provide(chat_repo.NewChatRepository),
-	fx.Provide(NewAnthropicService),
 	fx.Provide(service.NewChatService),
 	fx.Provide(controller.NewControllers),
 	fx.Provide(NewChatRouter),

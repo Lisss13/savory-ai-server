@@ -1,6 +1,6 @@
-// Package ai содержит интеграцию с Anthropic Claude для генерации AI-ответов.
+// Package service содержит сервис AI-бронирования с интеграцией Anthropic Claude.
 // Реализует tool calling для бронирования столиков, просмотра и отмены бронирований.
-package ai
+package service
 
 import (
 	"context"
@@ -16,12 +16,19 @@ import (
 	"savory-ai-server/utils/config"
 )
 
-// AnthropicService предоставляет интеграцию с Anthropic Claude API.
-// Поддерживает генерацию ответов и tool calling для операций с бронированием.
-type AnthropicService struct {
+// aiReservationService реализует интерфейс AIReservationService.
+type aiReservationService struct {
 	client             anthropic.Client                      // Клиент Anthropic API
 	reservationService reservationService.ReservationService // Сервис бронирования для tool calls
 	restaurantService  restaurantService.RestaurantService   // Сервис ресторанов для контекста
+}
+
+// AIReservationService определяет интерфейс для AI-сервиса бронирования.
+// Используется для генерации ответов с поддержкой tool calling.
+type AIReservationService interface {
+	// GenerateResponse генерирует ответ AI на основе истории чата.
+	// Поддерживает tool calling для операций с бронированием.
+	GenerateResponse(ctx context.Context, restaurantID uint, messages []ChatMessage) (string, error)
 }
 
 // ChatMessage представляет сообщение в чате для передачи в API.
@@ -30,18 +37,18 @@ type ChatMessage struct {
 	Content string `json:"content"` // Текст сообщения
 }
 
-// NewAnthropicService создаёт новый экземпляр сервиса Anthropic.
-// Принимает конфигурацию с API ключом и зависимые сервисы для tool calling.
-func NewAnthropicService(
+// NewAIReservationService создаёт новый экземпляр сервиса AI-бронирования.
+// Возвращает nil, если API ключ не настроен.
+func NewAIReservationService(
 	cfg *config.Config,
 	reservationSvc reservationService.ReservationService,
 	restaurantSvc restaurantService.RestaurantService,
-) *AnthropicService {
+) AIReservationService {
 	client := anthropic.NewClient(
 		option.WithAPIKey(cfg.Anthropic.APIKey),
 	)
 
-	return &AnthropicService{
+	return &aiReservationService{
 		client:             client,
 		reservationService: reservationSvc,
 		restaurantService:  restaurantSvc,
@@ -58,7 +65,7 @@ func NewAnthropicService(
 //  6. Возвращает текстовый ответ AI
 //
 // Использует модель claude-3-5-haiku-20241022.
-func (s *AnthropicService) GenerateResponse(ctx context.Context, restaurantID uint, messages []ChatMessage) (string, error) {
+func (s *aiReservationService) GenerateResponse(ctx context.Context, restaurantID uint, messages []ChatMessage) (string, error) {
 	// Get restaurant info for context
 	restaurant, err := s.restaurantService.GetByID(restaurantID)
 	if err != nil {
@@ -105,7 +112,7 @@ func (s *AnthropicService) GenerateResponse(ctx context.Context, restaurantID ui
 // processResponse обрабатывает ответ от Anthropic API.
 // Если ответ содержит tool calls, выполняет их и продолжает диалог.
 // Рекурсивно обрабатывает результаты tool calls до получения текстового ответа.
-func (s *AnthropicService) processResponse(ctx context.Context, restaurantID uint, response *anthropic.Message, messages []anthropic.MessageParam) (string, error) {
+func (s *aiReservationService) processResponse(ctx context.Context, restaurantID uint, response *anthropic.Message, messages []anthropic.MessageParam) (string, error) {
 	// Check if there are tool uses in the response
 	var toolUses []struct {
 		ID    string
@@ -229,7 +236,7 @@ func (s *AnthropicService) processResponse(ctx context.Context, restaurantID uin
 //   - get_my_reservations: получить бронирования по телефону
 //   - cancel_reservation: отменить бронирование
 //   - get_restaurant_info: получить информацию о ресторане
-func (s *AnthropicService) executeToolCall(restaurantID uint, toolName string, input json.RawMessage) (string, error) {
+func (s *aiReservationService) executeToolCall(restaurantID uint, toolName string, input json.RawMessage) (string, error) {
 	switch toolName {
 	case "get_available_slots":
 		return s.handleGetAvailableSlots(restaurantID, input)
@@ -246,15 +253,46 @@ func (s *AnthropicService) executeToolCall(restaurantID uint, toolName string, i
 	}
 }
 
+// =====================================================
+// Tool Input Structures
+// =====================================================
+
 // GetAvailableSlotsInput параметры для инструмента get_available_slots.
 type GetAvailableSlotsInput struct {
 	Date       string `json:"date"`        // Дата в формате YYYY-MM-DD
 	GuestCount int    `json:"guest_count"` // Количество гостей (по умолчанию 2)
 }
 
+// CreateReservationInput параметры для инструмента create_reservation.
+type CreateReservationInput struct {
+	Date          string `json:"date"`           // Дата бронирования YYYY-MM-DD
+	StartTime     string `json:"start_time"`     // Время начала HH:MM
+	GuestCount    int    `json:"guest_count"`    // Количество гостей
+	CustomerName  string `json:"customer_name"`  // Имя клиента (обязательно)
+	CustomerPhone string `json:"customer_phone"` // Телефон клиента (обязательно)
+	CustomerEmail string `json:"customer_email"` // Email клиента (опционально)
+	TableID       uint   `json:"table_id"`       // ID столика (автовыбор если не указан)
+	Notes         string `json:"notes"`          // Примечания к бронированию
+}
+
+// GetMyReservationsInput параметры для инструмента get_my_reservations.
+type GetMyReservationsInput struct {
+	Phone string `json:"phone"` // Телефон клиента для поиска бронирований
+}
+
+// CancelReservationInput параметры для инструмента cancel_reservation.
+type CancelReservationInput struct {
+	ReservationID uint   `json:"reservation_id"` // ID бронирования для отмены
+	Phone         string `json:"phone"`          // Телефон для верификации владельца
+}
+
+// =====================================================
+// Tool Handlers
+// =====================================================
+
 // handleGetAvailableSlots обрабатывает запрос на получение доступных слотов.
 // Возвращает отформатированный список слотов или сообщение об отсутствии мест.
-func (s *AnthropicService) handleGetAvailableSlots(restaurantID uint, input json.RawMessage) (string, error) {
+func (s *aiReservationService) handleGetAvailableSlots(restaurantID uint, input json.RawMessage) (string, error) {
 	var params GetAvailableSlotsInput
 	if err := json.Unmarshal(input, &params); err != nil {
 		return "", fmt.Errorf("failed to parse input: %w", err)
@@ -289,22 +327,10 @@ func (s *AnthropicService) handleGetAvailableSlots(restaurantID uint, input json
 	return result, nil
 }
 
-// CreateReservationInput параметры для инструмента create_reservation.
-type CreateReservationInput struct {
-	Date          string `json:"date"`           // Дата бронирования YYYY-MM-DD
-	StartTime     string `json:"start_time"`     // Время начала HH:MM
-	GuestCount    int    `json:"guest_count"`    // Количество гостей
-	CustomerName  string `json:"customer_name"`  // Имя клиента (обязательно)
-	CustomerPhone string `json:"customer_phone"` // Телефон клиента (обязательно)
-	CustomerEmail string `json:"customer_email"` // Email клиента (опционально)
-	TableID       uint   `json:"table_id"`       // ID столика (автовыбор если не указан)
-	Notes         string `json:"notes"`          // Примечания к бронированию
-}
-
 // handleCreateReservation обрабатывает запрос на создание бронирования.
 // Валидирует входные данные, автоматически подбирает столик если не указан,
 // создаёт бронирование и возвращает подтверждение.
-func (s *AnthropicService) handleCreateReservation(restaurantID uint, input json.RawMessage) (string, error) {
+func (s *aiReservationService) handleCreateReservation(restaurantID uint, input json.RawMessage) (string, error) {
 	var params CreateReservationInput
 	if err := json.Unmarshal(input, &params); err != nil {
 		return "", fmt.Errorf("failed to parse input: %w", err)
@@ -383,14 +409,9 @@ func (s *AnthropicService) handleCreateReservation(restaurantID uint, input json
 	), nil
 }
 
-// GetMyReservationsInput параметры для инструмента get_my_reservations.
-type GetMyReservationsInput struct {
-	Phone string `json:"phone"` // Телефон клиента для поиска бронирований
-}
-
 // handleGetMyReservations обрабатывает запрос на получение бронирований клиента.
 // Ищет бронирования по номеру телефона и возвращает отформатированный список.
-func (s *AnthropicService) handleGetMyReservations(input json.RawMessage) (string, error) {
+func (s *aiReservationService) handleGetMyReservations(input json.RawMessage) (string, error) {
 	var params GetMyReservationsInput
 	if err := json.Unmarshal(input, &params); err != nil {
 		return "", fmt.Errorf("failed to parse input: %w", err)
@@ -423,15 +444,9 @@ func (s *AnthropicService) handleGetMyReservations(input json.RawMessage) (strin
 	return result, nil
 }
 
-// CancelReservationInput параметры для инструмента cancel_reservation.
-type CancelReservationInput struct {
-	ReservationID uint   `json:"reservation_id"` // ID бронирования для отмены
-	Phone         string `json:"phone"`          // Телефон для верификации владельца
-}
-
 // handleCancelReservation обрабатывает запрос на отмену бронирования.
 // Верифицирует владельца по номеру телефона и отменяет бронирование.
-func (s *AnthropicService) handleCancelReservation(input json.RawMessage) (string, error) {
+func (s *aiReservationService) handleCancelReservation(input json.RawMessage) (string, error) {
 	var params CancelReservationInput
 	if err := json.Unmarshal(input, &params); err != nil {
 		return "", fmt.Errorf("failed to parse input: %w", err)
@@ -454,7 +469,7 @@ func (s *AnthropicService) handleCancelReservation(input json.RawMessage) (strin
 
 // handleGetRestaurantInfo обрабатывает запрос на получение информации о ресторане.
 // Возвращает название, описание, адрес, телефон и рабочие часы.
-func (s *AnthropicService) handleGetRestaurantInfo(restaurantID uint) (string, error) {
+func (s *aiReservationService) handleGetRestaurantInfo(restaurantID uint) (string, error) {
 	restaurant, err := s.restaurantService.GetByID(restaurantID)
 	if err != nil {
 		return "", err
@@ -478,6 +493,10 @@ func (s *AnthropicService) handleGetRestaurantInfo(restaurantID uint) (string, e
 	return result, nil
 }
 
+// =====================================================
+// Tools Definition
+// =====================================================
+
 // getTools возвращает определения инструментов для Anthropic API.
 // Инструменты:
 //   - get_available_slots: проверка доступности столиков
@@ -485,7 +504,7 @@ func (s *AnthropicService) handleGetRestaurantInfo(restaurantID uint) (string, e
 //   - get_my_reservations: просмотр бронирований по телефону
 //   - cancel_reservation: отмена бронирования
 //   - get_restaurant_info: информация о ресторане
-func (s *AnthropicService) getTools() []anthropic.ToolUnionParam {
+func (s *aiReservationService) getTools() []anthropic.ToolUnionParam {
 	return []anthropic.ToolUnionParam{
 		{
 			OfTool: &anthropic.ToolParam{
@@ -599,6 +618,10 @@ func (s *AnthropicService) getTools() []anthropic.ToolUnionParam {
 		},
 	}
 }
+
+// =====================================================
+// System Prompt
+// =====================================================
 
 // buildSystemPrompt строит системный промпт для AI с контекстом ресторана.
 // Включает инструкции по работе с бронированиями, правила общения,

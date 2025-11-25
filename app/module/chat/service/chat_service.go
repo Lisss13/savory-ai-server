@@ -5,9 +5,9 @@ package service
 import (
 	"context"
 	"errors"
+	aiReservation "savory-ai-server/app/module/ai_reservation/service"
 	"savory-ai-server/app/module/chat/payload"
 	"savory-ai-server/app/module/chat/repository"
-	"savory-ai-server/app/module/chat/service/ai"
 	"savory-ai-server/app/module/table/service"
 	"savory-ai-server/app/storage"
 	"time"
@@ -16,9 +16,9 @@ import (
 // chatService реализует интерфейс ChatService.
 // Содержит зависимости от репозитория, сервиса столиков и AI-сервиса.
 type chatService struct {
-	chatRepo         repository.ChatRepository  // Репозиторий для работы с БД
-	tableService     service.TableService       // Сервис для проверки существования столиков
-	anthropicService *ai.AnthropicService       // Сервис интеграции с Anthropic Claude (может быть nil)
+	chatRepo            repository.ChatRepository            // Репозиторий для работы с БД
+	tableService        service.TableService                 // Сервис для проверки существования столиков
+	aiReservationService aiReservation.AIReservationService  // Сервис AI-бронирования (может быть nil)
 }
 
 // ChatService определяет интерфейс бизнес-логики для чата.
@@ -45,12 +45,12 @@ type ChatService interface {
 }
 
 // NewChatService создаёт новый экземпляр сервиса чата.
-// anthropicService может быть nil - тогда используются простые ответы бота.
-func NewChatService(chatRepo repository.ChatRepository, tableService service.TableService, anthropicService *ai.AnthropicService) ChatService {
+// aiReservationService может быть nil - тогда используются простые ответы бота.
+func NewChatService(chatRepo repository.ChatRepository, tableService service.TableService, aiReservationSvc aiReservation.AIReservationService) ChatService {
 	return &chatService{
-		chatRepo:         chatRepo,
-		tableService:     tableService,
-		anthropicService: anthropicService,
+		chatRepo:            chatRepo,
+		tableService:        tableService,
+		aiReservationService: aiReservationSvc,
 	}
 }
 
@@ -149,13 +149,13 @@ func (s *chatService) MessageFromTable(req *payload.SendTableMessageReq) (*paylo
 	}
 
 	// Convert to AI message format
-	var aiMessages []ai.ChatMessage
+	var aiMessages []aiReservation.ChatMessage
 	for _, msg := range chatHistory {
 		role := "user"
 		if msg.AuthorType == storage.BotAuthor {
 			role = "assistant"
 		}
-		aiMessages = append(aiMessages, ai.ChatMessage{
+		aiMessages = append(aiMessages, aiReservation.ChatMessage{
 			Role:    role,
 			Content: msg.Content,
 		})
@@ -163,10 +163,10 @@ func (s *chatService) MessageFromTable(req *payload.SendTableMessageReq) (*paylo
 
 	// Generate AI response
 	var messageFromBot string
-	if s.anthropicService != nil {
+	if s.aiReservationService != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
-		messageFromBot, err = s.anthropicService.GenerateResponse(ctx, session.RestaurantID, aiMessages)
+		messageFromBot, err = s.aiReservationService.GenerateResponse(ctx, session.RestaurantID, aiMessages)
 		if err != nil {
 			// Fallback to simple response on error
 			messageFromBot, _ = generateBotResponse(createdUserMessage.Content)
@@ -359,13 +359,13 @@ func (s *chatService) MessageFromRestaurant(req *payload.SendRestaurantMessageRe
 	}
 
 	// Convert to AI message format
-	var aiMessages []ai.ChatMessage
+	var aiMessages []aiReservation.ChatMessage
 	for _, msg := range chatHistory {
 		role := "user"
 		if msg.AuthorType == storage.BotAuthor {
 			role = "assistant"
 		}
-		aiMessages = append(aiMessages, ai.ChatMessage{
+		aiMessages = append(aiMessages, aiReservation.ChatMessage{
 			Role:    role,
 			Content: msg.Content,
 		})
@@ -373,10 +373,10 @@ func (s *chatService) MessageFromRestaurant(req *payload.SendRestaurantMessageRe
 
 	// Generate AI response
 	var messageFromBot string
-	if s.anthropicService != nil {
+	if s.aiReservationService != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
-		messageFromBot, err = s.anthropicService.GenerateResponse(ctx, session.RestaurantID, aiMessages)
+		messageFromBot, err = s.aiReservationService.GenerateResponse(ctx, session.RestaurantID, aiMessages)
 		if err != nil {
 			// Fallback to simple response on error
 			messageFromBot, _ = generateBotResponse(createdUserMessage.Content)

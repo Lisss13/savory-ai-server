@@ -84,25 +84,11 @@ func NewRouter(
 // Register routes
 func (r *Router) Register() {
 	// Test Routes
-	r.App.Get("/ping", func(c *fiber.Ctx) error {
-		return c.SendString("Pong! 👋")
-	})
+	r.App.Get("/ping", PingHandler)
 
 	authRequired := middleware.AuthRequired(r.Cfg)
 
-	r.App.Get("/auth/chek", authRequired, func(c *fiber.Ctx) error {
-		user := c.Locals("user").(jwt.JWTData)
-		res := c.JSON(fiber.Map{
-			"id":         user.ID,
-			"email":      user.Email,
-			"company_id": user.CompanyID,
-		})
-		return response.Resp(c, response.Response{
-			Data:     res,
-			Messages: response.Messages{"Login success"},
-			Code:     fiber.StatusOK,
-		})
-	})
+	r.App.Get("/auth/chek", authRequired, HealthCheckHandler)
 
 	//Register routes of modules
 	r.AuthRouter.RegisterAuthRoutes(authRequired)
@@ -119,4 +105,22 @@ func (r *Router) Register() {
 	r.ChatRouter.RegisterChatRoutes()
 	r.SubscriptionRouter.RegisterSubscriptionRoutes(authRequired)
 	r.AdminRouter.RegisterAdminRoutes(authRequired)
+}
+
+func PingHandler(c *fiber.Ctx) error {
+	return c.SendString("Pong! 👋")
+}
+
+func HealthCheckHandler(c *fiber.Ctx) error {
+	user := c.Locals("user").(jwt.JWTData)
+	res := c.JSON(fiber.Map{
+		"id":         user.ID,
+		"email":      user.Email,
+		"company_id": user.CompanyID,
+	})
+	return response.Resp(c, response.Response{
+		Data:     res,
+		Messages: response.Messages{"Login success"},
+		Code:     fiber.StatusOK,
+	})
 }

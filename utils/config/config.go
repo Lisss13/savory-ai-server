@@ -123,6 +123,29 @@ func ParseConfig(name string, debug ...bool) (*Config, error) {
 	return contents, err
 }
 
+func validateConfig(cfg *Config) {
+	// add validation if needed
+	if cfg.Anthropic.APIKey == "" {
+		log.Panic().Msg("Anthropic API key is required")
+	}
+
+	if cfg.App.Port == "" {
+		log.Panic().Msg("Port is required")
+	}
+
+	if cfg.DB.Postgres.DSN == "" {
+		log.Panic().Msg("Postgres DSN is required")
+	}
+
+	if cfg.App.Host == "" {
+		log.Panic().Msg("Host is required")
+	}
+
+	if cfg.App.ChatServiceIrl == "" {
+		log.Panic().Msg("Chat Service URL is required")
+	}
+}
+
 // initialize config
 func NewConfig() *Config {
 	// Check if CONFIG_FILE environment variable is set
@@ -145,6 +168,8 @@ func NewConfig() *Config {
 		// panic if config is not found
 		log.Panic().Err(err).Msg("config not found")
 	}
+
+	validateConfig(config)
 
 	return config
 }

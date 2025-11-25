@@ -5,6 +5,7 @@ import (
 	"go.uber.org/fx"
 	"savory-ai-server/app/middleware"
 	"savory-ai-server/app/module/admin"
+	"savory-ai-server/app/module/ai_reservation"
 	"savory-ai-server/app/module/auth"
 	"savory-ai-server/app/module/chat"
 	"savory-ai-server/app/module/dish"
@@ -52,6 +53,7 @@ func main() {
 		restaurant.RestaurantModule,
 		organization.OrganizationModuler,
 		reservation.ReservationModule,
+		ai_reservation.AIReservationModule, // AI-сервис для бронирования (должен быть перед chat)
 		chat.ChatModule,
 		subscription.SubscriptionModule,
 		admin.AdminModule,
