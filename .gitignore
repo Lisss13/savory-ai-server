@@ -23,9 +23,6 @@ vendor/
 # Directories for AIR
 tmp
 
-# docs
-docs/
-
 *.toml
 
 .vscode/
