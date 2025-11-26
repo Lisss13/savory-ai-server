@@ -724,6 +724,595 @@ Content-Type: application/json
     });
 %}
 
+### 12.2 Создать Пиццу Пепперони
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_pizza_id}},
+  "name": "Пицца Пепперони",
+  "price": 650,
+  "description": "Острая пицца с салями пепперони",
+  "image": "https://example.com/pepperoni.jpg",
+  "ingredients": [
+    {"name": "Тесто", "quantity": 250},
+    {"name": "Томатный соус", "quantity": 80},
+    {"name": "Моцарелла", "quantity": 120},
+    {"name": "Пепперони", "quantity": 80}
+  ],
+  "allergens": [
+    {"name": "Глютен", "description": "Содержится в тесте"},
+    {"name": "Молоко", "description": "Содержится в сыре"}
+  ]
+}
+
+> {%
+    client.test("Create Pepperoni successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 12.3 Создать Пиццу Четыре сыра
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_pizza_id}},
+  "name": "Пицца Четыре сыра",
+  "price": 720,
+  "description": "Пицца с моцареллой, горгонзолой, пармезаном и таледжио",
+  "image": "https://example.com/quattro-formaggi.jpg",
+  "ingredients": [
+    {"name": "Тесто", "quantity": 250},
+    {"name": "Моцарелла", "quantity": 60},
+    {"name": "Горгонзола", "quantity": 50},
+    {"name": "Пармезан", "quantity": 40},
+    {"name": "Таледжио", "quantity": 50}
+  ],
+  "allergens": [
+    {"name": "Глютен", "description": "Содержится в тесте"},
+    {"name": "Молоко", "description": "Содержится в сырах"}
+  ]
+}
+
+> {%
+    client.test("Create Quattro Formaggi successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 12.4 Создать Пиццу Дьявола
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_pizza_id}},
+  "name": "Пицца Дьявола",
+  "price": 680,
+  "description": "Очень острая пицца с халапеньо и острым соусом",
+  "image": "https://example.com/diavola.jpg",
+  "ingredients": [
+    {"name": "Тесто", "quantity": 250},
+    {"name": "Томатный соус острый", "quantity": 100},
+    {"name": "Моцарелла", "quantity": 120},
+    {"name": "Салями острая", "quantity": 70},
+    {"name": "Халапеньо", "quantity": 30}
+  ],
+  "allergens": [
+    {"name": "Глютен", "description": "Содержится в тесте"},
+    {"name": "Молоко", "description": "Содержится в сыре"}
+  ]
+}
+
+> {%
+    client.test("Create Diavola successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 7.3 Создать Капрезе
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_antipasti_id}},
+  "name": "Капрезе",
+  "price": 520,
+  "description": "Салат из томатов, моцареллы и базилика с оливковым маслом",
+  "image": "https://example.com/caprese.jpg",
+  "ingredients": [
+    {"name": "Томаты", "quantity": 150},
+    {"name": "Моцарелла буффало", "quantity": 125},
+    {"name": "Базилик", "quantity": 15},
+    {"name": "Оливковое масло", "quantity": 20}
+  ],
+  "allergens": [
+    {"name": "Молоко", "description": "Содержится в моцарелле"}
+  ]
+}
+
+> {%
+    client.test("Create Caprese successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 7.4 Создать Прошутто с дыней
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_antipasti_id}},
+  "name": "Прошутто с дыней",
+  "price": 680,
+  "description": "Тонко нарезанная итальянская ветчина с дыней",
+  "image": "https://example.com/prosciutto-melone.jpg",
+  "ingredients": [
+    {"name": "Прошутто ди Парма", "quantity": 80},
+    {"name": "Дыня канталупа", "quantity": 200}
+  ],
+  "allergens": []
+}
+
+> {%
+    client.test("Create Prosciutto e Melone successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 7.5 Создать Антипасто мисто
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_antipasti_id}},
+  "name": "Антипасто мисто",
+  "price": 950,
+  "description": "Ассорти итальянских закусок: прошутто, салями, оливки, артишоки",
+  "image": "https://example.com/antipasto-misto.jpg",
+  "ingredients": [
+    {"name": "Прошутто", "quantity": 50},
+    {"name": "Салями", "quantity": 50},
+    {"name": "Оливки", "quantity": 40},
+    {"name": "Артишоки", "quantity": 60},
+    {"name": "Вяленые томаты", "quantity": 40}
+  ],
+  "allergens": []
+}
+
+> {%
+    client.test("Create Antipasto Misto successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 8.3 Создать Лазанью
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_primi_id}},
+  "name": "Лазанья болоньезе",
+  "price": 780,
+  "description": "Классическая лазанья с мясным рагу и бешамелем",
+  "image": "https://example.com/lasagna.jpg",
+  "ingredients": [
+    {"name": "Листы лазаньи", "quantity": 150},
+    {"name": "Говяжий фарш", "quantity": 200},
+    {"name": "Томатный соус", "quantity": 100},
+    {"name": "Бешамель", "quantity": 100},
+    {"name": "Пармезан", "quantity": 50}
+  ],
+  "allergens": [
+    {"name": "Глютен", "description": "Содержится в пасте"},
+    {"name": "Молоко", "description": "Содержится в бешамеле и сыре"},
+    {"name": "Яйца", "description": "Содержатся в пасте"}
+  ]
+}
+
+> {%
+    client.test("Create Lasagna successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 8.4 Создать Пенне Арабьята
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_primi_id}},
+  "name": "Пенне Арабьята",
+  "price": 520,
+  "description": "Острая паста с томатным соусом и перцем чили",
+  "image": "https://example.com/arrabiata.jpg",
+  "ingredients": [
+    {"name": "Пенне", "quantity": 150},
+    {"name": "Томатный соус", "quantity": 120},
+    {"name": "Чеснок", "quantity": 10},
+    {"name": "Перец чили", "quantity": 5},
+    {"name": "Петрушка", "quantity": 10}
+  ],
+  "allergens": [
+    {"name": "Глютен", "description": "Содержится в пасте"}
+  ]
+}
+
+> {%
+    client.test("Create Arrabiata successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 8.5 Создать Феттучине Альфредо
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_primi_id}},
+  "name": "Феттучине Альфредо",
+  "price": 720,
+  "description": "Феттучине в сливочном соусе с пармезаном",
+  "image": "https://example.com/fettuccine-alfredo.jpg",
+  "ingredients": [
+    {"name": "Феттучине", "quantity": 150},
+    {"name": "Сливки", "quantity": 100},
+    {"name": "Сливочное масло", "quantity": 40},
+    {"name": "Пармезан", "quantity": 60}
+  ],
+  "allergens": [
+    {"name": "Глютен", "description": "Содержится в пасте"},
+    {"name": "Молоко", "description": "Содержится в сливках и сыре"}
+  ]
+}
+
+> {%
+    client.test("Create Fettuccine Alfredo successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 8.6 Создать Равиоли с рикоттой
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_primi_id}},
+  "name": "Равиоли с рикоттой и шпинатом",
+  "price": 680,
+  "description": "Домашние равиоли с начинкой из рикотты и шпината",
+  "image": "https://example.com/ravioli.jpg",
+  "ingredients": [
+    {"name": "Тесто для пасты", "quantity": 120},
+    {"name": "Рикотта", "quantity": 100},
+    {"name": "Шпинат", "quantity": 50},
+    {"name": "Сливочное масло", "quantity": 30},
+    {"name": "Шалфей", "quantity": 5}
+  ],
+  "allergens": [
+    {"name": "Глютен", "description": "Содержится в тесте"},
+    {"name": "Молоко", "description": "Содержится в рикотте"},
+    {"name": "Яйца", "description": "Содержатся в тесте"}
+  ]
+}
+
+> {%
+    client.test("Create Ravioli successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 9.2 Создать Сальтимбокка
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_secondi_id}},
+  "name": "Сальтимбокка алла Романа",
+  "price": 1280,
+  "description": "Телятина с прошутто и шалфеем в белом вине",
+  "image": "https://example.com/saltimbocca.jpg",
+  "ingredients": [
+    {"name": "Телятина", "quantity": 200},
+    {"name": "Прошутто", "quantity": 40},
+    {"name": "Шалфей", "quantity": 5},
+    {"name": "Белое вино", "quantity": 50},
+    {"name": "Сливочное масло", "quantity": 30}
+  ],
+  "allergens": [
+    {"name": "Молоко", "description": "Содержится в масле"}
+  ]
+}
+
+> {%
+    client.test("Create Saltimbocca successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 9.3 Создать Котолетту по-милански
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_secondi_id}},
+  "name": "Котолетта по-милански",
+  "price": 1150,
+  "description": "Телячья отбивная в панировке",
+  "image": "https://example.com/cotoletta.jpg",
+  "ingredients": [
+    {"name": "Телятина на кости", "quantity": 300},
+    {"name": "Панировочные сухари", "quantity": 50},
+    {"name": "Яйцо", "quantity": 50},
+    {"name": "Сливочное масло", "quantity": 40}
+  ],
+  "allergens": [
+    {"name": "Глютен", "description": "Содержится в панировке"},
+    {"name": "Яйца", "description": "Используются для панировки"},
+    {"name": "Молоко", "description": "Содержится в масле"}
+  ]
+}
+
+> {%
+    client.test("Create Cotoletta successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 9.4 Создать Морской окунь на гриле
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_secondi_id}},
+  "name": "Бранзино на гриле",
+  "price": 1380,
+  "description": "Средиземноморский окунь на гриле с лимоном и травами",
+  "image": "https://example.com/branzino.jpg",
+  "ingredients": [
+    {"name": "Морской окунь", "quantity": 350},
+    {"name": "Лимон", "quantity": 30},
+    {"name": "Розмарин", "quantity": 5},
+    {"name": "Оливковое масло", "quantity": 20}
+  ],
+  "allergens": [
+    {"name": "Рыба", "description": "Основной ингредиент"}
+  ]
+}
+
+> {%
+    client.test("Create Branzino successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 10.2 Создать Панна котта
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_dolci_id}},
+  "name": "Панна котта с ягодным соусом",
+  "price": 380,
+  "description": "Итальянский сливочный десерт с ягодным кули",
+  "image": "https://example.com/pannacotta.jpg",
+  "ingredients": [
+    {"name": "Сливки", "quantity": 150},
+    {"name": "Сахар", "quantity": 30},
+    {"name": "Желатин", "quantity": 5},
+    {"name": "Ягодный соус", "quantity": 50}
+  ],
+  "allergens": [
+    {"name": "Молоко", "description": "Содержится в сливках"}
+  ]
+}
+
+> {%
+    client.test("Create Panna Cotta successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 10.3 Создать Канноли
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_dolci_id}},
+  "name": "Канноли сицилийские",
+  "price": 350,
+  "description": "Хрустящие трубочки с кремом из рикотты",
+  "image": "https://example.com/cannoli.jpg",
+  "ingredients": [
+    {"name": "Тесто для канноли", "quantity": 40},
+    {"name": "Рикотта", "quantity": 100},
+    {"name": "Сахарная пудра", "quantity": 20},
+    {"name": "Шоколадная крошка", "quantity": 15}
+  ],
+  "allergens": [
+    {"name": "Глютен", "description": "Содержится в тесте"},
+    {"name": "Молоко", "description": "Содержится в рикотте"}
+  ]
+}
+
+> {%
+    client.test("Create Cannoli successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 10.4 Создать Джелато ассорти
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_dolci_id}},
+  "name": "Джелато ассорти (3 шарика)",
+  "price": 320,
+  "description": "Итальянское мороженое: ваниль, шоколад, фисташка",
+  "image": "https://example.com/gelato.jpg",
+  "ingredients": [
+    {"name": "Молоко", "quantity": 100},
+    {"name": "Сливки", "quantity": 50},
+    {"name": "Сахар", "quantity": 30},
+    {"name": "Натуральные ароматизаторы", "quantity": 10}
+  ],
+  "allergens": [
+    {"name": "Молоко", "description": "Основной ингредиент"},
+    {"name": "Орехи", "description": "Фисташковый вкус содержит орехи"}
+  ]
+}
+
+> {%
+    client.test("Create Gelato successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 11.2 Создать Капучино
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_bevande_id}},
+  "name": "Капучино",
+  "price": 220,
+  "description": "Эспрессо со вспененным молоком",
+  "image": "https://example.com/cappuccino.jpg",
+  "ingredients": [
+    {"name": "Эспрессо", "quantity": 30},
+    {"name": "Молоко", "quantity": 150}
+  ],
+  "allergens": [
+    {"name": "Молоко", "description": "Основной ингредиент"}
+  ]
+}
+
+> {%
+    client.test("Create Cappuccino successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 11.3 Создать Лимонад домашний
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_bevande_id}},
+  "name": "Лимонад домашний",
+  "price": 280,
+  "description": "Освежающий лимонад из свежих лимонов с мятой",
+  "image": "https://example.com/limonata.jpg",
+  "ingredients": [
+    {"name": "Лимоны", "quantity": 100},
+    {"name": "Сахар", "quantity": 30},
+    {"name": "Мята", "quantity": 5},
+    {"name": "Вода газированная", "quantity": 200}
+  ],
+  "allergens": []
+}
+
+> {%
+    client.test("Create Limonata successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 11.4 Создать Апероль Шприц
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_bevande_id}},
+  "name": "Апероль Шприц",
+  "price": 450,
+  "description": "Классический итальянский аперитив",
+  "image": "https://example.com/aperol-spritz.jpg",
+  "ingredients": [
+    {"name": "Апероль", "quantity": 60},
+    {"name": "Просекко", "quantity": 90},
+    {"name": "Содовая", "quantity": 30},
+    {"name": "Апельсин", "quantity": 20}
+  ],
+  "allergens": []
+}
+
+> {%
+    client.test("Create Aperol Spritz successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 11.5 Создать Вино красное (бокал)
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_bevande_id}},
+  "name": "Кьянти Классико (бокал)",
+  "price": 380,
+  "description": "Красное вино из региона Тоскана",
+  "image": "https://example.com/chianti.jpg",
+  "ingredients": [
+    {"name": "Вино Кьянти", "quantity": 150}
+  ],
+  "allergens": [
+    {"name": "Сульфиты", "description": "Содержатся в вине"}
+  ]
+}
+
+> {%
+    client.test("Create Chianti successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
+### 11.6 Создать Вино белое (бокал)
+POST {{baseUrl}}/dishes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "menuCategoryId": {{category_bevande_id}},
+  "name": "Пино Гриджио (бокал)",
+  "price": 350,
+  "description": "Легкое белое вино из северной Италии",
+  "image": "https://example.com/pinot-grigio.jpg",
+  "ingredients": [
+    {"name": "Вино Пино Гриджио", "quantity": 150}
+  ],
+  "allergens": [
+    {"name": "Сульфиты", "description": "Содержатся в вине"}
+  ]
+}
+
+> {%
+    client.test("Create Pinot Grigio successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+%}
+
 ### 13.1 Получить все блюда
 GET {{baseUrl}}/dishes
 Authorization: Bearer {{token}}
