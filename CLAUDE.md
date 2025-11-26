@@ -551,7 +551,137 @@ router.Get("/public", ctrl.PublicEndpoint)
 - Не запускай сервер без миграций в продакшене!
 - Не запускай go build после того, как внес изменения в зависимости или поменяешь код
 - Не запускай go run после того, как внес изменения в зависимости или поменяешь код
-- После добавления или изменения api приложения вноси изменения в файл docs/swagger.yaml 
+- После добавления или изменения api приложения вноси изменения в файл docs/swagger.yaml
+
+## HTTP тесты (JetBrains HTTP Client)
+
+Файлы `.http` используются для тестирования API. Располагаются в корне проекта или в папке `http/`.
+
+### Основные правила
+
+1. **Только `@baseUrl` - статическая переменная:**
+```http
+@baseUrl = http://localhost:4000
+```
+
+2. **Все остальные переменные - динамические через `client.global.set()`:**
+```http
+> {%
+    if (response.body.data) {
+        client.global.set("token", response.body.data.token);
+        client.global.set("user_id", response.body.data.user.id);
+    }
+%}
+```
+
+3. **Использование переменных:**
+```http
+Authorization: Bearer {{token}}
+GET {{baseUrl}}/users/{{user_id}}
+```
+
+### Шаблон запроса с сохранением данных
+
+```http
+### Название запроса
+POST {{baseUrl}}/endpoint
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "field": "value",
+  "related_id": {{some_id}}
+}
+
+> {%
+    client.test("Test name", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+
+    if (response.body.data && response.body.data.id) {
+        client.global.set("created_id", response.body.data.id);
+    }
+%}
+```
+
+### Важные правила для переменных
+
+| Что | Правильно | Неправильно |
+|-----|-----------|-------------|
+| Числовые ID в JSON | `"id": {{user_id}}` | `"id": "{{user_id}}"` |
+| Строки в JSON | `"name": "{{user_name}}"` | `"name": {{user_name}}` |
+| В URL | `{{baseUrl}}/users/{{id}}` | - |
+| В заголовках | `Bearer {{token}}` | - |
+
+### Структура ответа API
+
+Все ответы имеют структуру:
+```json
+{
+  "data": { ... },
+  "messages": ["success"],
+  "code": 200
+}
+```
+
+Поэтому данные всегда в `response.body.data`.
+
+### Разные структуры ответов
+
+**Login** возвращает:
+```javascript
+response.body.data.token
+response.body.data.user.id
+response.body.data.user.email
+response.body.data.organization.id
+```
+
+**Register** возвращает (без токена!):
+```javascript
+response.body.data.id
+response.body.data.email
+```
+
+**Create ресурса** возвращает:
+```javascript
+response.body.data.id
+response.body.data.name
+// и другие поля созданного объекта
+```
+
+### Порядок тестов
+
+1. Регистрация → сохранить `user_id`, `user_email`
+2. Логин (с `{{user_email}}`) → сохранить `token`, `organization_id`
+3. Создание ресурсов → использовать `{{token}}`, сохранять ID
+4. Операции с ресурсами → использовать сохранённые ID
+
+### Частые ошибки
+
+```http
+# НЕПРАВИЛЬНО - статические переменные не работают для динамических данных
+@token = {{login.response.body.data.token}}
+
+# ПРАВИЛЬНО - только через client.global.set()
+> {%
+    client.global.set("token", response.body.data.token);
+%}
+```
+
+```http
+# НЕПРАВИЛЬНО - хардкод ID
+GET {{baseUrl}}/dishes/1
+
+# ПРАВИЛЬНО - динамический ID
+GET {{baseUrl}}/dishes/{{dish_id}}
+```
+
+### Проверка payload перед написанием теста
+
+Перед написанием теста проверь структуру запроса в `app/module/{name}/payload/request.go`:
+- Какие поля обязательны (`validate:"required"`)
+- Какой формат JSON полей (`json:"field_name"` - snake_case или camelCase)
+- Типы данных (uint, string, etc.)
 
 ## Правила вывода
 - При изменении файлов показывай только список изменённых файлов, без содержимого

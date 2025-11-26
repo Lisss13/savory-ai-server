@@ -17,6 +17,8 @@ type OrganizationRepository interface {
 	UpdateOrganization(org *storage.Organization) (*storage.Organization, error)
 	AddUserToOrganization(orgID, userID uint) error
 	RemoveUserFromOrganization(orgID, userID uint) error
+	FindOrganizationByAdminID(adminID uint) (*storage.Organization, error)
+	FindOrganizationsByUserID(userID uint) ([]*storage.Organization, error)
 }
 
 func NewOrganizationRepository(db *database.Database) OrganizationRepository {
@@ -92,6 +94,22 @@ func (or *organizationRepository) FindOrganizationsByUserID(userID uint) ([]*sto
 	}
 
 	return orgs, nil
+}
+
+func (or *organizationRepository) FindOrganizationByAdminID(adminID uint) (*storage.Organization, error) {
+	var org *storage.Organization
+	err := or.DB.DB.
+		Preload("Admin").
+		Preload("Users").
+		Preload("Languages").
+		First(&org, "admin_id = ?", adminID).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return org, nil
 }
 
 func (or *organizationRepository) AddUserToOrganization(orgID, userID uint) error {

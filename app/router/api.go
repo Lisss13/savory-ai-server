@@ -108,7 +108,7 @@ func (r *Router) Register() {
 }
 
 func PingHandler(c *fiber.Ctx) error {
-	return c.SendString("Pong! 👋")
+	return response.RespStatusOk(c, "Pong", "Pong success")
 }
 
 func HealthCheckHandler(c *fiber.Ctx) error {
@@ -118,9 +118,5 @@ func HealthCheckHandler(c *fiber.Ctx) error {
 		"email":      user.Email,
 		"company_id": user.CompanyID,
 	})
-	return response.Resp(c, response.Response{
-		Data:     res,
-		Messages: response.Messages{"Login success"},
-		Code:     fiber.StatusOK,
-	})
+	return response.RespStatusOk(c, res, "Health check success")
 }

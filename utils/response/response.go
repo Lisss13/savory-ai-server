@@ -76,6 +76,14 @@ func Resp(c *fiber.Ctx, resp Response) error {
 	return c.JSON(resp)
 }
 
+func RespStatusOk(c *fiber.Ctx, data any, massage any) error {
+	return Resp(c, Response{
+		Data:     data,
+		Messages: Messages{massage},
+		Code:     fiber.StatusOK,
+	})
+}
+
 func RespDelete(c *fiber.Ctx, id uint64, resp Response) error {
 	// set status
 	if resp.Code == 0 {

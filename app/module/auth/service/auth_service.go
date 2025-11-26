@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"math/rand"
 	"savory-ai-server/app/module/auth/payload"
@@ -51,6 +52,7 @@ func NewAuthService(
 func (as *authService) Login(req payload.LoginRequest) (res payload.LoginResponse, err error) {
 	// check user by email
 	user, err := as.userRepo.FindUserByEmail(req.Email)
+	fmt.Println("Login ", user)
 	if err != nil {
 		return
 	}
@@ -66,7 +68,7 @@ func (as *authService) Login(req payload.LoginRequest) (res payload.LoginRespons
 		return
 	}
 
-	company, err := as.organizationRepo.FindOrganizationByID(user.ID)
+	company, err := as.organizationRepo.FindOrganizationByAdminID(user.ID)
 	if err != nil {
 		return
 	}
