@@ -3,6 +3,7 @@
 ### Все ID динамические через client.global.set()
 
 @baseUrl = http://localhost:4000
+@password = Qwerty12
 
 ### 0.1 Ping сервера
 GET {{baseUrl}}/ping
@@ -22,7 +23,7 @@ Content-Type: application/json
   "name": "Mario Rossi",
   "email": "mario{{$timestamp}}@labellaitalia.com",
   "phone": "+390123456789",
-  "password": "Qwerty12"
+  "password": "{{password}}"
 }
 
 > {%
