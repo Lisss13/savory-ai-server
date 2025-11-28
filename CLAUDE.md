@@ -46,7 +46,62 @@ server/
 │   ├── config/                  # Конфигурация (TOML)
 │   ├── jwt/                     # JWT утилиты
 │   └── response/                # Форматирование ответов
-└── config/                      # TOML конфиги
+├── config/                      # TOML конфиги
+└── docs/                        # Документация (swagger, specs)
+```
+
+## Модели данных (storage/)
+
+### Основные сущности
+
+| Модель | Файл | Описание |
+|--------|------|----------|
+| User | user.go | Пользователь системы (role: user/admin) |
+| Organization | organization.go | Организация (владелец ресторанов) |
+| Restaurant | restaurant.go | Ресторан (с WorkingHours) |
+| Table | table.go | Столик в ресторане |
+| MenuCategory | menu_category.go | Категория меню (→ Restaurant) |
+| Dish | dish.go | Блюдо (→ Restaurant, MenuCategory) |
+| Ingredient | dish.go | Ингредиент блюда |
+| Allergen | dish.go | Аллерген блюда |
+| Reservation | reservation.go | Бронирование столика |
+| Subscription | subscription.go | Подписка организации |
+| Question | question.go | Вопрос для чата (с chat_type) |
+| Language | language.go | Поддерживаемый язык |
+| AdminLog | admin_log.go | Лог действий администратора |
+
+### Чат-модели
+
+| Модель | Файл | Описание |
+|--------|------|----------|
+| TableChatSessions | chat.go | Сессия чата столика |
+| TableChatMessage | chat.go | Сообщение в чате столика |
+| RestaurantChatSessions | chat.go | Сессия чата ресторана |
+| RestaurantChatMessage | chat.go | Сообщение в чате ресторана |
+
+### Константы и enum'ы
+
+```go
+// UserRole (user.go)
+UserRoleUser  = "user"
+UserRoleAdmin = "admin"
+
+// ReservationStatus (reservation.go)
+ReservationStatusPending   = "pending"
+ReservationStatusConfirmed = "confirmed"
+ReservationStatusCancelled = "cancelled"
+ReservationStatusCompleted = "completed"
+ReservationStatusNoShow    = "no_show"
+
+// AdminAction (admin_log.go)
+ActionCreate, ActionUpdate, ActionDelete
+ActionBlock, ActionUnblock
+ActionActivate, ActionDeactivate, ActionView
+
+// ChatAuthorType (chat.go)
+UserAuthor       = "user"
+BotAuthor        = "bot"
+RestaurantAuthor = "restaurant"
 ```
 
 ## Создание нового модуля
@@ -506,15 +561,49 @@ db.Where("id IN ?", ids).Find(&items)
 |--------|----------|--------------|
 | auth | Аутентификация | POST /auth/login, POST /auth/register |
 | user | Пользователи | GET/POST/PATCH /user |
-| organization | Организации | /organizations |
+| organization | Организации | /organization |
 | restaurant | Рестораны | /restaurants |
-| menu_category | Категории меню | /categories |
-| dish | Блюда | /dishes |
+| menu_category | Категории меню (привязаны к Restaurant) | /categories |
+| dish | Блюда (привязаны к Restaurant) | /dishes |
 | table | Столы | /tables |
-| question | Вопросы (мультиязычные) | /questions |
+| question | Вопросы (мультиязычные, с chat_type) | /questions |
 | qr_code | QR-коды | /qr-codes |
-| file_upload | Загрузка файлов | /upload |
-| chat | Чат | /chat |
+| file_upload | Загрузка файлов | /uploads |
+| chat | Чат (table/restaurant сессии) | /chat |
+| reservation | Бронирование столов | /reservations |
+| subscription | Подписки организаций | /subscriptions |
+| admin | Админ-панель (role: admin) | /admin |
+| ai_reservation | AI-ассистент бронирования | /ai-reservation |
+
+### Иерархия сущностей
+
+```
+Organization (владелец)
+├── User (admin организации)
+├── Restaurant[] (рестораны)
+│   ├── Table[] (столики)
+│   │   └── TableChatSession[] (чат-сессии столика)
+│   ├── MenuCategory[] (категории меню)
+│   │   └── Dish[] (блюда)
+│   │       ├── Ingredient[] (ингредиенты)
+│   │       └── Allergen[] (аллергены)
+│   ├── Reservation[] (бронирования)
+│   ├── RestaurantChatSession[] (чат-сессии ресторана)
+│   └── WorkingHours[] (рабочие часы)
+└── Subscription[] (подписки)
+```
+
+### Важные связи моделей
+
+**Dish и MenuCategory привязаны к Restaurant (не Organization!):**
+```go
+// Dish.RestaurantID → Restaurant
+// MenuCategory.RestaurantID → Restaurant
+```
+
+**Два типа чат-сессий:**
+- `TableChatSession` - чат для столика (гость сканирует QR)
+- `RestaurantChatSession` - общий чат ресторана
 
 ## Конфигурация
 
@@ -525,6 +614,48 @@ db.Where("id IN ?", ids).Find(&items)
 - `[db.postgres]` - DSN для PostgreSQL
 - `[middleware.jwt]` - секрет и время жизни токена
 - `[logger]` - настройки логирования
+
+## Документация проекта
+
+Файлы в папке `docs/`:
+
+| Файл | Описание |
+|------|----------|
+| `swagger.yaml` | OpenAPI 3.0.3 спецификация API |
+| `todo_swagger.md` | План проверки и обновления swagger |
+| `database_schema.md` | Схема базы данных |
+| `restaurant_dashboard_spec.md` | Спецификация дашборда ресторана |
+| `admin-dox.md` | Документация админ-панели |
+
+## Публичные и защищённые эндпоинты
+
+### Публичные (без авторизации)
+```
+POST /auth/login
+POST /auth/register
+POST /auth/request-password-reset
+POST /auth/verify-password-reset
+
+GET /categories/restaurant/:restaurant_id
+GET /categories/:id
+GET /dishes/restaurant/:restaurant_id
+GET /dishes/category/:restaurant_id
+GET /dishes/dish-of-day/:restaurant_id
+GET /dishes/:id
+
+GET /reservations/available/:restaurant_id
+GET /reservations/my (query: phone)
+POST /reservations
+POST /reservations/:id/cancel/public
+```
+
+### Защищённые (требуют JWT)
+Все остальные эндпоинты требуют `Authorization: Bearer <token>`
+
+### Admin-only (role: admin)
+```
+GET/POST/PATCH/DELETE /admin/*
+```
 
 ## Частые задачи
 
