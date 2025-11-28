@@ -5,7 +5,6 @@ import (
 	"savory-ai-server/app/module/dish/payload"
 	"savory-ai-server/app/module/dish/service"
 	fileUploadService "savory-ai-server/app/module/file_upload/service"
-	"savory-ai-server/utils/jwt"
 	"savory-ai-server/utils/response"
 	"strconv"
 )
@@ -15,8 +14,9 @@ type dishController struct {
 	fileUploadService fileUploadService.FileUploadService
 }
 
+// DishController определяет интерфейс контроллера блюд.
 type DishController interface {
-	GetAll(c *fiber.Ctx) error
+	GetByRestaurantID(c *fiber.Ctx) error
 	GetDishCategory(c *fiber.Ctx) error
 	GetByID(c *fiber.Ctx) error
 	Create(c *fiber.Ctx) error
@@ -33,9 +33,18 @@ func NewDishController(service service.DishService, fileUploadSvc fileUploadServ
 	}
 }
 
-func (c *dishController) GetAll(ctx *fiber.Ctx) error {
-	user := ctx.Locals("user").(jwt.JWTData)
-	dishes, err := c.dishService.GetByOrganizationID(user.CompanyID)
+// GetByRestaurantID возвращает все блюда для указанного ресторана.
+// Метод: GET /dishes/restaurant/:restaurant_id
+func (c *dishController) GetByRestaurantID(ctx *fiber.Ctx) error {
+	restaurantID, err := strconv.ParseUint(ctx.Params("restaurant_id"), 10, 32)
+	if err != nil {
+		return response.Resp(ctx, response.Response{
+			Messages: response.Messages{"Invalid restaurant ID"},
+			Code:     fiber.StatusBadRequest,
+		})
+	}
+
+	dishes, err := c.dishService.GetByRestaurantID(uint(restaurantID))
 	if err != nil {
 		return err
 	}
@@ -47,8 +56,18 @@ func (c *dishController) GetAll(ctx *fiber.Ctx) error {
 	})
 }
 
+// GetDishCategory возвращает блюда, сгруппированные по категориям для ресторана.
+// Метод: GET /dishes/category/:restaurant_id
 func (c *dishController) GetDishCategory(ctx *fiber.Ctx) error {
-	dishes, err := c.dishService.GetDishByMenuCategory()
+	restaurantID, err := strconv.ParseUint(ctx.Params("restaurant_id"), 10, 32)
+	if err != nil {
+		return response.Resp(ctx, response.Response{
+			Messages: response.Messages{"Invalid restaurant ID"},
+			Code:     fiber.StatusBadRequest,
+		})
+	}
+
+	dishes, err := c.dishService.GetDishByMenuCategory(uint(restaurantID))
 	if err != nil {
 		return err
 	}
@@ -60,6 +79,8 @@ func (c *dishController) GetDishCategory(ctx *fiber.Ctx) error {
 	})
 }
 
+// GetByID возвращает блюдо по ID.
+// Метод: GET /dishes/:id
 func (c *dishController) GetByID(ctx *fiber.Ctx) error {
 	id, err := strconv.ParseUint(ctx.Params("id"), 10, 32)
 	if err != nil {
@@ -78,8 +99,10 @@ func (c *dishController) GetByID(ctx *fiber.Ctx) error {
 	})
 }
 
+// Create создаёт новое блюдо.
+// Метод: POST /dishes
+// Требует: JWT авторизация, restaurant_id в теле запроса
 func (c *dishController) Create(ctx *fiber.Ctx) error {
-
 	// Parse the request body
 	req := new(payload.CreateDishReq)
 	if err := ctx.BodyParser(req); err != nil {
@@ -94,9 +117,7 @@ func (c *dishController) Create(ctx *fiber.Ctx) error {
 		})
 	}
 
-	user := ctx.Locals("user").(jwt.JWTData)
-
-	dish, err := c.dishService.Create(req, user.CompanyID)
+	dish, err := c.dishService.Create(req)
 	if err != nil {
 		return err
 	}
@@ -108,6 +129,9 @@ func (c *dishController) Create(ctx *fiber.Ctx) error {
 	})
 }
 
+// Update обновляет блюдо.
+// Метод: PUT /dishes/:id
+// Требует: JWT авторизация, restaurant_id в теле запроса
 func (c *dishController) Update(ctx *fiber.Ctx) error {
 	id, err := strconv.ParseUint(ctx.Params("id"), 10, 32)
 	if err != nil {
@@ -127,9 +151,7 @@ func (c *dishController) Update(ctx *fiber.Ctx) error {
 		})
 	}
 
-	user := ctx.Locals("user").(jwt.JWTData)
-
-	dish, err := c.dishService.Update(uint(id), req, user.CompanyID)
+	dish, err := c.dishService.Update(uint(id), req)
 	if err != nil {
 		return err
 	}
@@ -141,6 +163,8 @@ func (c *dishController) Update(ctx *fiber.Ctx) error {
 	})
 }
 
+// Delete удаляет блюдо.
+// Метод: DELETE /dishes/:id
 func (c *dishController) Delete(ctx *fiber.Ctx) error {
 	id, err := strconv.ParseUint(ctx.Params("id"), 10, 32)
 	if err != nil {
@@ -157,9 +181,18 @@ func (c *dishController) Delete(ctx *fiber.Ctx) error {
 	})
 }
 
+// GetDishOfDay возвращает блюдо дня для ресторана.
+// Метод: GET /dishes/dish-of-day/:restaurant_id
 func (c *dishController) GetDishOfDay(ctx *fiber.Ctx) error {
-	user := ctx.Locals("user").(jwt.JWTData)
-	dish, err := c.dishService.GetDishOfDay(user.CompanyID)
+	restaurantID, err := strconv.ParseUint(ctx.Params("restaurant_id"), 10, 32)
+	if err != nil {
+		return response.Resp(ctx, response.Response{
+			Messages: response.Messages{"Invalid restaurant ID"},
+			Code:     fiber.StatusBadRequest,
+		})
+	}
+
+	dish, err := c.dishService.GetDishOfDay(uint(restaurantID))
 	if err != nil {
 		return err
 	}
@@ -171,6 +204,8 @@ func (c *dishController) GetDishOfDay(ctx *fiber.Ctx) error {
 	})
 }
 
+// SetDishOfDay устанавливает блюдо дня.
+// Метод: POST /dishes/dish-of-day/:id
 func (c *dishController) SetDishOfDay(ctx *fiber.Ctx) error {
 	id, err := strconv.ParseUint(ctx.Params("id"), 10, 32)
 	if err != nil {

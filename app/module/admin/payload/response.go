@@ -69,14 +69,14 @@ type AdminOrganizationsResp struct {
 
 // AdminDishResp - блюдо для модерации
 type AdminDishResp struct {
-	ID               uint      `json:"id"`
-	Name             string    `json:"name"`
-	Description      string    `json:"description"`
-	Price            float64   `json:"price"`
-	Image            string    `json:"image"`
-	OrganizationID   uint      `json:"organizationId"`
-	OrganizationName string    `json:"organizationName"`
-	CreatedAt        time.Time `json:"createdAt"`
+	ID             uint      `json:"id"`
+	Name           string    `json:"name"`
+	Description    string    `json:"description"`
+	Price          float64   `json:"price"`
+	Image          string    `json:"image"`
+	RestaurantID   uint      `json:"restaurantId"`
+	RestaurantName string    `json:"restaurantName"`
+	CreatedAt      time.Time `json:"createdAt"`
 }
 
 // AdminDishesResp - список блюд для модерации

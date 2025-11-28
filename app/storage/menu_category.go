@@ -4,10 +4,11 @@ import (
 	"gorm.io/gorm"
 )
 
-// MenuCategory represents a category in the menu
+// MenuCategory represents a category in the menu.
+// Категория меню привязана к конкретному ресторану.
 type MenuCategory struct {
 	gorm.Model
-	OrganizationID uint         `gorm:"column:organization_id;not null" json:"organization_id"`
-	Organization   Organization `gorm:"foreignKey:OrganizationID" json:"organization"`
-	Name           string       `gorm:"column:name;not null" json:"name"`
+	RestaurantID uint       `gorm:"column:restaurant_id;not null;index" json:"restaurant_id"`
+	Restaurant   Restaurant `gorm:"foreignKey:RestaurantID" json:"restaurant"`
+	Name         string     `gorm:"column:name;not null" json:"name"`
 }

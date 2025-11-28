@@ -1,21 +1,21 @@
 package payload
 
-// IngredientReq represents an ingredient in a dish request
+// IngredientReq представляет ингредиент в запросе.
 type IngredientReq struct {
 	Name     string  `json:"name" validate:"required"`
 	Quantity float64 `json:"quantity" validate:"required"`
 }
 
-// AllergenReq represents an allergen in a dish request
-// Используется для указания аллергенов при создании/обновлении блюда
+// AllergenReq представляет аллерген в запросе.
 type AllergenReq struct {
 	Name        string `json:"name" validate:"required"`
 	Description string `json:"description"`
 }
 
-// CreateDishReq represents a request to create a new dish
+// CreateDishReq запрос на создание нового блюда.
 type CreateDishReq struct {
-	MenuCategoryID uint            `json:"menuCategoryId" validate:"required"`
+	RestaurantID   uint            `json:"restaurant_id" validate:"required"`
+	MenuCategoryID uint            `json:"menu_category_id" validate:"required"`
 	Name           string          `json:"name" validate:"required"`
 	Price          float64         `json:"price" validate:"required"`
 	Description    string          `json:"description"`
@@ -24,9 +24,10 @@ type CreateDishReq struct {
 	Allergens      []AllergenReq   `json:"allergens,omitempty" validate:"omitempty,dive"`
 }
 
-// UpdateDishReq represents a request to update an existing dish
+// UpdateDishReq запрос на обновление блюда.
 type UpdateDishReq struct {
-	MenuCategoryID uint            `json:"menuCategoryId" validate:"required"`
+	RestaurantID   uint            `json:"restaurant_id" validate:"required"`
+	MenuCategoryID uint            `json:"menu_category_id" validate:"required"`
 	Name           string          `json:"name" validate:"required"`
 	Price          float64         `json:"price" validate:"required"`
 	Description    string          `json:"description"`

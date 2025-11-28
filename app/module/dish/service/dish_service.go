@@ -12,15 +12,16 @@ type dishService struct {
 	menuCategoryRepo repCategory.MenuCategoryRepository
 }
 
+// DishService определяет интерфейс сервиса блюд.
 type DishService interface {
-	GetDishByMenuCategory() (*payload.DishByCategoryResp, error)
+	GetDishByMenuCategory(restaurantID uint) (*payload.DishByCategoryResp, error)
 	GetAll() (*payload.DishesResp, error)
 	GetByID(id uint) (*payload.DishResp, error)
-	GetByOrganizationID(organizationID uint) (*payload.DishesResp, error)
-	Create(req *payload.CreateDishReq, organizationID uint) (*payload.DishResp, error)
-	Update(id uint, req *payload.UpdateDishReq, organizationID uint) (*payload.DishResp, error)
+	GetByRestaurantID(restaurantID uint) (*payload.DishesResp, error)
+	Create(req *payload.CreateDishReq) (*payload.DishResp, error)
+	Update(id uint, req *payload.UpdateDishReq) (*payload.DishResp, error)
 	Delete(id uint) error
-	GetDishOfDay(companyID uint) (*payload.DishResp, error)
+	GetDishOfDay(restaurantID uint) (*payload.DishResp, error)
 	SetDishOfDay(id uint) (*payload.DishResp, error)
 }
 
@@ -31,19 +32,20 @@ func NewDishService(dishRepo repository.DishRepository, menuCategoryRepo repCate
 	}
 }
 
-func (s *dishService) GetDishByMenuCategory() (*payload.DishByCategoryResp, error) {
-	dishes, err := s.dishRepo.FindAll()
+// GetDishByMenuCategory возвращает блюда, сгруппированные по категориям для ресторана.
+func (s *dishService) GetDishByMenuCategory(restaurantID uint) (*payload.DishByCategoryResp, error) {
+	dishes, err := s.dishRepo.FindByRestaurantID(restaurantID)
 	if err != nil {
 		return nil, err
 	}
-	category, err := s.menuCategoryRepo.FindAll()
+	categories, err := s.menuCategoryRepo.FindByRestaurantID(restaurantID)
 	if err != nil {
 		return nil, err
 	}
 
 	var dishResps []payload.DishCategoryResp
 
-	for _, cat := range category {
+	for _, cat := range categories {
 		var dishesInCategory []payload.DishResp
 		for _, dish := range dishes {
 			if dish.MenuCategoryID == cat.ID {
@@ -80,8 +82,9 @@ func (s *dishService) GetAll() (*payload.DishesResp, error) {
 	}, nil
 }
 
-func (s *dishService) GetByOrganizationID(organizationID uint) (*payload.DishesResp, error) {
-	dishes, err := s.dishRepo.FindByOrganizationID(organizationID)
+// GetByRestaurantID возвращает все блюда для указанного ресторана.
+func (s *dishService) GetByRestaurantID(restaurantID uint) (*payload.DishesResp, error) {
+	dishes, err := s.dishRepo.FindByRestaurantID(restaurantID)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +109,8 @@ func (s *dishService) GetByID(id uint) (*payload.DishResp, error) {
 	return &resp, nil
 }
 
-func (s *dishService) Create(req *payload.CreateDishReq, organizationID uint) (*payload.DishResp, error) {
+// Create создаёт новое блюдо.
+func (s *dishService) Create(req *payload.CreateDishReq) (*payload.DishResp, error) {
 	// Create ingredients
 	var ingredients []*storage.Ingredient
 	for _, ingredientReq := range req.Ingredients {
@@ -127,7 +131,7 @@ func (s *dishService) Create(req *payload.CreateDishReq, organizationID uint) (*
 
 	// Create a dish
 	dish := &storage.Dish{
-		OrganizationID: organizationID,
+		RestaurantID:   req.RestaurantID,
 		MenuCategoryID: req.MenuCategoryID,
 		Name:           req.Name,
 		Price:          req.Price,
@@ -146,7 +150,8 @@ func (s *dishService) Create(req *payload.CreateDishReq, organizationID uint) (*
 	return &resp, nil
 }
 
-func (s *dishService) Update(id uint, req *payload.UpdateDishReq, organizationID uint) (*payload.DishResp, error) {
+// Update обновляет существующее блюдо.
+func (s *dishService) Update(id uint, req *payload.UpdateDishReq) (*payload.DishResp, error) {
 	// Check if dish exists
 	existingDish, err := s.dishRepo.FindByID(id)
 	if err != nil {
@@ -174,7 +179,7 @@ func (s *dishService) Update(id uint, req *payload.UpdateDishReq, organizationID
 	}
 
 	// Update dish
-	existingDish.OrganizationID = organizationID
+	existingDish.RestaurantID = req.RestaurantID
 	existingDish.MenuCategoryID = req.MenuCategoryID
 	existingDish.Name = req.Name
 	existingDish.Price = req.Price
@@ -196,8 +201,9 @@ func (s *dishService) Delete(id uint) error {
 	return s.dishRepo.Delete(id)
 }
 
-func (s *dishService) GetDishOfDay(companyID uint) (*payload.DishResp, error) {
-	dish, err := s.dishRepo.FindDishOfDay(companyID)
+// GetDishOfDay возвращает блюдо дня для указанного ресторана.
+func (s *dishService) GetDishOfDay(restaurantID uint) (*payload.DishResp, error) {
+	dish, err := s.dishRepo.FindDishOfDay(restaurantID)
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +222,7 @@ func (s *dishService) SetDishOfDay(id uint) (*payload.DishResp, error) {
 	return &resp, nil
 }
 
-// Helper function to map a dish to a response
+// mapDishToResponse преобразует модель блюда в ответ API.
 func mapDishToResponse(dish *storage.Dish) payload.DishResp {
 	// Map ingredients
 	var ingredientResps []payload.IngredientResp
@@ -244,18 +250,17 @@ func mapDishToResponse(dish *storage.Dish) payload.DishResp {
 		Name: dish.MenuCategory.Name,
 	}
 
-	// Map organization
-	organizationResp := payload.OrganizationResp{
-		ID:    dish.Organization.ID,
-		Name:  dish.Organization.Name,
-		Phone: dish.Organization.Phone,
+	// Map restaurant
+	restaurantResp := payload.RestaurantResp{
+		ID:   dish.Restaurant.ID,
+		Name: dish.Restaurant.Name,
 	}
 
 	// Map dish
 	return payload.DishResp{
 		ID:           dish.ID,
 		CreatedAt:    dish.CreatedAt,
-		Organization: organizationResp,
+		Restaurant:   restaurantResp,
 		MenuCategory: menuCategoryResp,
 		Name:         dish.Name,
 		Price:        dish.Price,

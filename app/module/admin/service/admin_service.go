@@ -241,14 +241,14 @@ func (s *adminService) GetAllDishes(page, pageSize int) (*payload.AdminDishesRes
 	var dishResps []payload.AdminDishResp
 	for _, dish := range dishes {
 		dishResps = append(dishResps, payload.AdminDishResp{
-			ID:               dish.ID,
-			Name:             dish.Name,
-			Description:      dish.Description,
-			Price:            dish.Price,
-			Image:            dish.Image,
-			OrganizationID:   dish.OrganizationID,
-			OrganizationName: dish.Organization.Name,
-			CreatedAt:        dish.CreatedAt,
+			ID:             dish.ID,
+			Name:           dish.Name,
+			Description:    dish.Description,
+			Price:          dish.Price,
+			Image:          dish.Image,
+			RestaurantID:   dish.RestaurantID,
+			RestaurantName: dish.Restaurant.Name,
+			CreatedAt:      dish.CreatedAt,
 		})
 	}
 

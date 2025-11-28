@@ -371,7 +371,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "name": "Закуски (Antipasti)"
+  "name": "Закуски (Antipasti)",
+  "restaurant_id": {{restaurant_id}}
 }
 
 > {%
@@ -390,7 +391,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "name": "Первые блюда (Primi Piatti)"
+  "name": "Первые блюда (Primi Piatti)",
+  "restaurant_id": {{restaurant_id}}
 }
 
 > {%
@@ -409,7 +411,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "name": "Вторые блюда (Secondi Piatti)"
+  "name": "Вторые блюда (Secondi Piatti)",
+  "restaurant_id": {{restaurant_id}}
 }
 
 > {%
@@ -428,7 +431,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "name": "Десерты (Dolci)"
+  "name": "Десерты (Dolci)",
+  "restaurant_id": {{restaurant_id}}
 }
 
 > {%
@@ -447,7 +451,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "name": "Напитки (Bevande)"
+  "name": "Напитки (Bevande)",
+  "restaurant_id": {{restaurant_id}}
 }
 
 > {%
@@ -466,7 +471,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "name": "Пицца"
+  "name": "Пицца",
+  "restaurant_id": {{restaurant_id}}
 }
 
 > {%
@@ -479,8 +485,8 @@ Content-Type: application/json
     }
 %}
 
-### 6.7 Получить все категории
-GET {{baseUrl}}/categories
+### 6.7 Получить все категории ресторана
+GET {{baseUrl}}/categories/restaurant/{{restaurant_id}}
 Authorization: Bearer {{token}}
 
 > {%
@@ -488,8 +494,8 @@ Authorization: Bearer {{token}}
         client.assert(response.status === 200, "Expected status 200");
     });
 
-    if (response.body.data && response.body.data.length > 0) {
-        response.body.data.forEach(function(cat, index) {
+    if (response.body.data && response.body.data.categories && response.body.data.categories.length > 0) {
+        response.body.data.categories.forEach(function(cat, index) {
             if (index === 0 && !client.global.get("category_antipasti_id")) {
                 client.global.set("category_antipasti_id", cat.id);
             }
@@ -503,7 +509,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_antipasti_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_antipasti_id}},
   "name": "Брускетта с томатами и базиликом",
   "price": 450,
   "description": "Хрустящий итальянский хлеб с томатами, базиликом и оливковым маслом",
@@ -535,7 +542,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_antipasti_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_antipasti_id}},
   "name": "Карпаччо из говядины",
   "price": 890,
   "description": "Тонко нарезанная говядина с рукколой и пармезаном",
@@ -566,7 +574,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_primi_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_primi_id}},
   "name": "Спагетти Карбонара",
   "price": 690,
   "description": "Классическая римская паста с гуанчиале и яйцом",
@@ -600,7 +609,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_primi_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_primi_id}},
   "name": "Ризотто с белыми грибами",
   "price": 850,
   "description": "Кремовое ризотто с белыми грибами",
@@ -627,7 +637,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_secondi_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_secondi_id}},
   "name": "Оссобуко по-милански",
   "price": 1450,
   "description": "Телячья голень в белом вине",
@@ -651,7 +662,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_dolci_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_dolci_id}},
   "name": "Тирамису классический",
   "price": 420,
   "description": "Итальянский десерт с маскарпоне",
@@ -680,7 +692,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_bevande_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_bevande_id}},
   "name": "Эспрессо",
   "price": 150,
   "description": "Классический итальянский эспрессо",
@@ -703,7 +716,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_pizza_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_pizza_id}},
   "name": "Пицца Маргарита",
   "price": 550,
   "description": "Классическая пицца с моцареллой",
@@ -731,7 +745,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_pizza_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_pizza_id}},
   "name": "Пицца Пепперони",
   "price": 650,
   "description": "Острая пицца с салями пепперони",
@@ -760,7 +775,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_pizza_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_pizza_id}},
   "name": "Пицца Четыре сыра",
   "price": 720,
   "description": "Пицца с моцареллой, горгонзолой, пармезаном и таледжио",
@@ -790,7 +806,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_pizza_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_pizza_id}},
   "name": "Пицца Дьявола",
   "price": 680,
   "description": "Очень острая пицца с халапеньо и острым соусом",
@@ -820,7 +837,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_antipasti_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_antipasti_id}},
   "name": "Капрезе",
   "price": 520,
   "description": "Салат из томатов, моцареллы и базилика с оливковым маслом",
@@ -848,7 +866,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_antipasti_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_antipasti_id}},
   "name": "Прошутто с дыней",
   "price": 680,
   "description": "Тонко нарезанная итальянская ветчина с дыней",
@@ -872,7 +891,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_antipasti_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_antipasti_id}},
   "name": "Антипасто мисто",
   "price": 950,
   "description": "Ассорти итальянских закусок: прошутто, салями, оливки, артишоки",
@@ -899,7 +919,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_primi_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_primi_id}},
   "name": "Лазанья болоньезе",
   "price": 780,
   "description": "Классическая лазанья с мясным рагу и бешамелем",
@@ -930,7 +951,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_primi_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_primi_id}},
   "name": "Пенне Арабьята",
   "price": 520,
   "description": "Острая паста с томатным соусом и перцем чили",
@@ -959,7 +981,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_primi_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_primi_id}},
   "name": "Феттучине Альфредо",
   "price": 720,
   "description": "Феттучине в сливочном соусе с пармезаном",
@@ -988,7 +1011,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_primi_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_primi_id}},
   "name": "Равиоли с рикоттой и шпинатом",
   "price": 680,
   "description": "Домашние равиоли с начинкой из рикотты и шпината",
@@ -1019,7 +1043,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_secondi_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_secondi_id}},
   "name": "Сальтимбокка алла Романа",
   "price": 1280,
   "description": "Телятина с прошутто и шалфеем в белом вине",
@@ -1048,7 +1073,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_secondi_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_secondi_id}},
   "name": "Котолетта по-милански",
   "price": 1150,
   "description": "Телячья отбивная в панировке",
@@ -1078,7 +1104,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_secondi_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_secondi_id}},
   "name": "Бранзино на гриле",
   "price": 1380,
   "description": "Средиземноморский окунь на гриле с лимоном и травами",
@@ -1106,7 +1133,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_dolci_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_dolci_id}},
   "name": "Панна котта с ягодным соусом",
   "price": 380,
   "description": "Итальянский сливочный десерт с ягодным кули",
@@ -1134,7 +1162,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_dolci_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_dolci_id}},
   "name": "Канноли сицилийские",
   "price": 350,
   "description": "Хрустящие трубочки с кремом из рикотты",
@@ -1163,7 +1192,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_dolci_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_dolci_id}},
   "name": "Джелато ассорти (3 шарика)",
   "price": 320,
   "description": "Итальянское мороженое: ваниль, шоколад, фисташка",
@@ -1192,7 +1222,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_bevande_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_bevande_id}},
   "name": "Капучино",
   "price": 220,
   "description": "Эспрессо со вспененным молоком",
@@ -1218,7 +1249,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_bevande_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_bevande_id}},
   "name": "Лимонад домашний",
   "price": 280,
   "description": "Освежающий лимонад из свежих лимонов с мятой",
@@ -1244,7 +1276,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_bevande_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_bevande_id}},
   "name": "Апероль Шприц",
   "price": 450,
   "description": "Классический итальянский аперитив",
@@ -1270,7 +1303,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_bevande_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_bevande_id}},
   "name": "Кьянти Классико (бокал)",
   "price": 380,
   "description": "Красное вино из региона Тоскана",
@@ -1295,7 +1329,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_bevande_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_bevande_id}},
   "name": "Пино Гриджио (бокал)",
   "price": 350,
   "description": "Легкое белое вино из северной Италии",
@@ -1314,23 +1349,21 @@ Content-Type: application/json
     });
 %}
 
-### 13.1 Получить все блюда
-GET {{baseUrl}}/dishes
-Authorization: Bearer {{token}}
+### 13.1 Получить все блюда ресторана
+GET {{baseUrl}}/dishes/restaurant/{{restaurant_id}}
 
 > {%
     client.test("Get all dishes successful", function() {
         client.assert(response.status === 200, "Expected status 200");
     });
 
-    if (response.body.data && response.body.data.length > 0 && !client.global.get("dish_id")) {
-        client.global.set("dish_id", response.body.data[0].id);
+    if (response.body.data && response.body.data.dishes && response.body.data.dishes.length > 0 && !client.global.get("dish_id")) {
+        client.global.set("dish_id", response.body.data.dishes[0].id);
     }
 %}
 
-### 13.2 Получить блюда по категории
-GET {{baseUrl}}/dishes/category?categoryId={{category_antipasti_id}}
-Authorization: Bearer {{token}}
+### 13.2 Получить блюда по категориям ресторана
+GET {{baseUrl}}/dishes/category/{{restaurant_id}}
 
 > {%
     client.test("Get dishes by category successful", function() {
@@ -1340,7 +1373,6 @@ Authorization: Bearer {{token}}
 
 ### 13.3 Получить блюдо по ID
 GET {{baseUrl}}/dishes/{{dish_id}}
-Authorization: Bearer {{token}}
 
 > {%
     client.test("Get dish by ID successful", function() {
@@ -1358,9 +1390,8 @@ Authorization: Bearer {{token}}
     });
 %}
 
-### 13.5 Получить блюдо дня
-GET {{baseUrl}}/dishes/dish-of-day
-Authorization: Bearer {{token}}
+### 13.5 Получить блюдо дня ресторана
+GET {{baseUrl}}/dishes/dish-of-day/{{restaurant_id}}
 
 > {%
     client.test("Get dish of day successful", function() {
@@ -1600,7 +1631,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "menuCategoryId": {{category_antipasti_id}},
+  "restaurant_id": {{restaurant_id}},
+  "menu_category_id": {{category_antipasti_id}},
   "name": "Брускетта с томатами (обновлено)",
   "price": 480,
   "description": "Обновленное описание",
@@ -1637,12 +1669,12 @@ Content-Type: application/json
     });
 %}
 
-### 21.1 Запрос без авторизации
-GET {{baseUrl}}/dishes
+### 21.1 Публичный эндпоинт блюд ресторана (без авторизации)
+GET {{baseUrl}}/dishes/restaurant/{{restaurant_id}}
 
 > {%
-    client.test("Unauthorized request returns 401", function() {
-        client.assert(response.status === 401, "Expected status 401");
+    client.test("Public dishes endpoint returns 200", function() {
+        client.assert(response.status === 200, "Expected status 200");
     });
 %}
 

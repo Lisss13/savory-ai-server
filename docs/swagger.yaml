@@ -664,6 +664,9 @@ components:
         createdAt:
           type: string
           format: date-time
+        restaurantId:
+          type: integer
+          description: ID ресторана
         name:
           type: string
           description: Название категории
@@ -673,10 +676,14 @@ components:
       description: Запрос на создание категории меню
       required:
         - name
+        - restaurant_id
       properties:
         name:
           type: string
           description: Название категории
+        restaurant_id:
+          type: integer
+          description: ID ресторана
 
     # ==================== Dish ====================
     DishResponse:
@@ -685,20 +692,18 @@ components:
       properties:
         id:
           type: integer
-        createdAt:
+        created_at:
           type: string
           format: date-time
-        organization:
+        restaurant:
           type: object
-          description: Организация-владелец
+          description: Ресторан-владелец
           properties:
             id:
               type: integer
             name:
               type: string
-            phone:
-              type: string
-        menuCategory:
+        menu_category:
           type: object
           description: Категория меню
           properties:
@@ -724,6 +729,11 @@ components:
           description: Список ингредиентов
           items:
             $ref: '#/components/schemas/IngredientResponse'
+        allergens:
+          type: array
+          description: Список аллергенов
+          items:
+            $ref: '#/components/schemas/AllergenResponse'
 
     IngredientResponse:
       type: object
@@ -739,16 +749,46 @@ components:
           format: float
           description: Количество
 
+    AllergenResponse:
+      type: object
+      description: Аллерген блюда
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          description: Название аллергена
+        description:
+          type: string
+          description: Описание аллергена
+
+    AllergenRequest:
+      type: object
+      description: Аллерген для создания/обновления
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Название аллергена
+        description:
+          type: string
+          description: Описание аллергена
+
     CreateDishRequest:
       type: object
       description: Запрос на создание блюда
       required:
-        - menuCategoryId
+        - restaurant_id
+        - menu_category_id
         - name
         - price
         - ingredients
       properties:
-        menuCategoryId:
+        restaurant_id:
+          type: integer
+          description: ID ресторана
+        menu_category_id:
           type: integer
           description: ID категории меню
         name:
@@ -769,6 +809,11 @@ components:
           description: Ингредиенты
           items:
             $ref: '#/components/schemas/IngredientRequest'
+        allergens:
+          type: array
+          description: Аллергены (опционально)
+          items:
+            $ref: '#/components/schemas/AllergenRequest'
 
     IngredientRequest:
       type: object
@@ -789,26 +834,41 @@ components:
       type: object
       description: Запрос на обновление блюда
       required:
-        - menuCategoryId
+        - restaurant_id
+        - menu_category_id
         - name
         - price
         - ingredients
       properties:
-        menuCategoryId:
+        restaurant_id:
           type: integer
+          description: ID ресторана
+        menu_category_id:
+          type: integer
+          description: ID категории меню
         name:
           type: string
+          description: Название блюда
         price:
           type: number
           format: float
+          description: Цена
         description:
           type: string
+          description: Описание
         image:
           type: string
+          description: URL изображения
         ingredients:
           type: array
+          description: Ингредиенты
           items:
             $ref: '#/components/schemas/IngredientRequest'
+        allergens:
+          type: array
+          description: Аллергены (опционально)
+          items:
+            $ref: '#/components/schemas/AllergenRequest'
 
     DishByCategoryResponse:
       type: object
@@ -1434,10 +1494,12 @@ components:
           format: float
         image:
           type: string
-        organizationId:
+        restaurantId:
           type: integer
-        organizationName:
+          description: ID ресторана
+        restaurantName:
           type: string
+          description: Название ресторана
         createdAt:
           type: string
           format: date-time
@@ -2474,15 +2536,22 @@ paths:
                           $ref: '#/components/schemas/TableResponse'
 
   # ==================== Menu Categories ====================
-  /categories:
+  /categories/restaurant/{restaurant_id}:
     get:
       tags:
         - Menu Category
-      summary: Получить все категории меню
-      description: Возвращает список всех категорий меню организации (напитки, горячее, десерты и т.д.)
-      operationId: getAllCategories
-      security:
-        - BearerAuth: []
+      summary: Получить категории меню ресторана
+      description: |
+        Возвращает список всех категорий меню указанного ресторана.
+        **Публичный эндпоинт** - не требует авторизации.
+      operationId: getCategoriesByRestaurant
+      parameters:
+        - name: restaurant_id
+          in: path
+          required: true
+          description: ID ресторана
+          schema:
+            type: integer
       responses:
         '200':
           description: Список категорий
@@ -2500,6 +2569,10 @@ paths:
                             type: array
                             items:
                               $ref: '#/components/schemas/MenuCategoryResponse'
+        '404':
+          description: Ресторан не найден
+
+  /categories:
     post:
       tags:
         - Menu Category
@@ -2532,10 +2605,10 @@ paths:
       tags:
         - Menu Category
       summary: Получить категорию по ID
-      description: Возвращает информацию о категории меню.
+      description: |
+        Возвращает информацию о категории меню.
+        **Публичный эндпоинт** - не требует авторизации.
       operationId: getCategoryById
-      security:
-        - BearerAuth: []
       parameters:
         - name: id
           in: path
@@ -2581,15 +2654,22 @@ paths:
           description: Категория не найдена
 
   # ==================== Dishes ====================
-  /dishes:
+  /dishes/restaurant/{restaurant_id}:
     get:
       tags:
         - Dish
-      summary: Получить все блюда
-      description: Возвращает список всех блюд организации с их ингредиентами.
-      operationId: getAllDishes
-      security:
-        - BearerAuth: []
+      summary: Получить все блюда ресторана
+      description: |
+        Возвращает список всех блюд указанного ресторана с их ингредиентами и аллергенами.
+        **Публичный эндпоинт** - не требует авторизации.
+      operationId: getDishesByRestaurant
+      parameters:
+        - name: restaurant_id
+          in: path
+          required: true
+          description: ID ресторана
+          schema:
+            type: integer
       responses:
         '200':
           description: Список блюд
@@ -2607,6 +2687,10 @@ paths:
                             type: array
                             items:
                               $ref: '#/components/schemas/DishResponse'
+        '404':
+          description: Ресторан не найден
+
+  /dishes:
     post:
       tags:
         - Dish
@@ -2639,10 +2723,10 @@ paths:
       tags:
         - Dish
       summary: Получить блюдо по ID
-      description: Возвращает полную информацию о блюде включая ингредиенты.
+      description: |
+        Возвращает полную информацию о блюде включая ингредиенты и аллергены.
+        **Публичный эндпоинт** - не требует авторизации.
       operationId: getDishById
-      security:
-        - BearerAuth: []
       parameters:
         - name: id
           in: path
@@ -2711,15 +2795,22 @@ paths:
         '404':
           description: Блюдо не найдено
 
-  /dishes/category:
+  /dishes/category/{restaurant_id}:
     get:
       tags:
         - Dish
       summary: Получить блюда по категориям
-      description: Возвращает блюда, сгруппированные по категориям меню. Удобно для отображения меню.
+      description: |
+        Возвращает блюда ресторана, сгруппированные по категориям меню. Удобно для отображения меню.
+        **Публичный эндпоинт** - не требует авторизации.
       operationId: getDishesByCategory
-      security:
-        - BearerAuth: []
+      parameters:
+        - name: restaurant_id
+          in: path
+          required: true
+          description: ID ресторана
+          schema:
+            type: integer
       responses:
         '200':
           description: Блюда по категориям
@@ -2733,15 +2824,22 @@ paths:
                       data:
                         $ref: '#/components/schemas/DishByCategoryResponse'
 
-  /dishes/dish-of-day:
+  /dishes/dish-of-day/{restaurant_id}:
     get:
       tags:
         - Dish
       summary: Получить блюдо дня
-      description: Возвращает текущее блюдо дня организации.
+      description: |
+        Возвращает текущее блюдо дня указанного ресторана.
+        **Публичный эндпоинт** - не требует авторизации.
       operationId: getDishOfDay
-      security:
-        - BearerAuth: []
+      parameters:
+        - name: restaurant_id
+          in: path
+          required: true
+          description: ID ресторана
+          schema:
+            type: integer
       responses:
         '200':
           description: Блюдо дня

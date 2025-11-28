@@ -10,11 +10,12 @@ type menuCategoryService struct {
 	menuCategoryRepo repository.MenuCategoryRepository
 }
 
+// MenuCategoryService определяет интерфейс сервиса категорий меню.
 type MenuCategoryService interface {
 	GetAll() (*payload.MenuCategoriesResp, error)
 	GetByID(id uint) (*payload.MenuCategoryResp, error)
-	GetByOrganizationID(organizationID uint) (*payload.MenuCategoriesResp, error)
-	Create(req *payload.CreateMenuCategoryReq, organizationID uint) (*payload.MenuCategoryResp, error)
+	GetByRestaurantID(restaurantID uint) (*payload.MenuCategoriesResp, error)
+	Create(req *payload.CreateMenuCategoryReq) (*payload.MenuCategoryResp, error)
 	Delete(id uint) error
 }
 
@@ -33,9 +34,10 @@ func (s *menuCategoryService) GetAll() (*payload.MenuCategoriesResp, error) {
 	var categoryResps []payload.MenuCategoryResp
 	for _, category := range categories {
 		categoryResps = append(categoryResps, payload.MenuCategoryResp{
-			ID:        category.ID,
-			CreatedAt: category.CreatedAt,
-			Name:      category.Name,
+			ID:           category.ID,
+			CreatedAt:    category.CreatedAt,
+			Name:         category.Name,
+			RestaurantID: category.RestaurantID,
 		})
 	}
 
@@ -44,8 +46,9 @@ func (s *menuCategoryService) GetAll() (*payload.MenuCategoriesResp, error) {
 	}, nil
 }
 
-func (s *menuCategoryService) GetByOrganizationID(organizationID uint) (*payload.MenuCategoriesResp, error) {
-	categories, err := s.menuCategoryRepo.FindByOrganizationID(organizationID)
+// GetByRestaurantID возвращает все категории меню для указанного ресторана.
+func (s *menuCategoryService) GetByRestaurantID(restaurantID uint) (*payload.MenuCategoriesResp, error) {
+	categories, err := s.menuCategoryRepo.FindByRestaurantID(restaurantID)
 	if err != nil {
 		return nil, err
 	}
@@ -53,9 +56,10 @@ func (s *menuCategoryService) GetByOrganizationID(organizationID uint) (*payload
 	var categoryResps []payload.MenuCategoryResp
 	for _, category := range categories {
 		categoryResps = append(categoryResps, payload.MenuCategoryResp{
-			ID:        category.ID,
-			CreatedAt: category.CreatedAt,
-			Name:      category.Name,
+			ID:           category.ID,
+			CreatedAt:    category.CreatedAt,
+			Name:         category.Name,
+			RestaurantID: category.RestaurantID,
 		})
 	}
 
@@ -71,16 +75,18 @@ func (s *menuCategoryService) GetByID(id uint) (*payload.MenuCategoryResp, error
 	}
 
 	return &payload.MenuCategoryResp{
-		ID:        category.ID,
-		CreatedAt: category.CreatedAt,
-		Name:      category.Name,
+		ID:           category.ID,
+		CreatedAt:    category.CreatedAt,
+		Name:         category.Name,
+		RestaurantID: category.RestaurantID,
 	}, nil
 }
 
-func (s *menuCategoryService) Create(req *payload.CreateMenuCategoryReq, organizationID uint) (*payload.MenuCategoryResp, error) {
+// Create создаёт новую категорию меню для ресторана.
+func (s *menuCategoryService) Create(req *payload.CreateMenuCategoryReq) (*payload.MenuCategoryResp, error) {
 	category := &storage.MenuCategory{
-		Name:           req.Name,
-		OrganizationID: organizationID,
+		Name:         req.Name,
+		RestaurantID: req.RestaurantID,
 	}
 
 	createdCategory, err := s.menuCategoryRepo.Create(category)
@@ -89,9 +95,10 @@ func (s *menuCategoryService) Create(req *payload.CreateMenuCategoryReq, organiz
 	}
 
 	return &payload.MenuCategoryResp{
-		ID:        createdCategory.ID,
-		CreatedAt: createdCategory.CreatedAt,
-		Name:      createdCategory.Name,
+		ID:           createdCategory.ID,
+		CreatedAt:    createdCategory.CreatedAt,
+		Name:         createdCategory.Name,
+		RestaurantID: createdCategory.RestaurantID,
 	}, nil
 }
 

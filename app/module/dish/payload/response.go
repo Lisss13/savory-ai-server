@@ -4,40 +4,38 @@ import (
 	"time"
 )
 
-// IngredientResp represents an ingredient in a dish response
+// IngredientResp представляет ингредиент в ответе.
 type IngredientResp struct {
 	ID       uint    `json:"id"`
 	Name     string  `json:"name"`
 	Quantity float64 `json:"quantity"`
 }
 
-// AllergenResp represents an allergen in a dish response
-// Содержит информацию об аллергене для отображения гостям
+// AllergenResp представляет аллерген в ответе.
 type AllergenResp struct {
 	ID          uint   `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description,omitempty"`
 }
 
-// OrganizationResp represents an organization in a dish response
-type OrganizationResp struct {
-	ID    uint   `json:"id"`
-	Name  string `json:"name"`
-	Phone string `json:"phone"`
+// RestaurantResp представляет ресторан в ответе блюда.
+type RestaurantResp struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
 }
 
-// MenuCategoryResp represents a menu category in a dish response
+// MenuCategoryResp представляет категорию меню в ответе блюда.
 type MenuCategoryResp struct {
 	ID   uint   `json:"id"`
 	Name string `json:"name"`
 }
 
-// DishResp represents a dish in a response
+// DishResp представляет блюдо в ответе.
 type DishResp struct {
 	ID           uint             `json:"id"`
-	CreatedAt    time.Time        `json:"createdAt"`
-	Organization OrganizationResp `json:"organization"`
-	MenuCategory MenuCategoryResp `json:"menuCategory"`
+	CreatedAt    time.Time        `json:"created_at"`
+	Restaurant   RestaurantResp   `json:"restaurant"`
+	MenuCategory MenuCategoryResp `json:"menu_category"`
 	Name         string           `json:"name"`
 	Price        float64          `json:"price"`
 	Description  string           `json:"description"`
@@ -46,16 +44,18 @@ type DishResp struct {
 	Allergens    []AllergenResp   `json:"allergens"`
 }
 
-// DishesResp represents a list of dishes in a response
+// DishesResp представляет список блюд в ответе.
 type DishesResp struct {
 	Dishes []DishResp `json:"dishes"`
 }
 
+// DishCategoryResp представляет категорию с блюдами.
 type DishCategoryResp struct {
 	Category MenuCategoryResp `json:"category"`
 	Dishes   []DishResp       `json:"dishes"`
 }
 
+// DishByCategoryResp представляет блюда, сгруппированные по категориям.
 type DishByCategoryResp struct {
 	Dishes []DishCategoryResp `json:"dishes"`
 }

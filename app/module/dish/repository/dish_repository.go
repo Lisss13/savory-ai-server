@@ -11,14 +11,15 @@ type dishRepository struct {
 	DB *database.Database
 }
 
+// DishRepository определяет интерфейс для работы с блюдами в БД.
 type DishRepository interface {
 	FindAll() (dishes []*storage.Dish, err error)
 	FindByID(id uint) (dish *storage.Dish, err error)
-	FindByOrganizationID(organizationID uint) (dishes []*storage.Dish, err error)
+	FindByRestaurantID(restaurantID uint) (dishes []*storage.Dish, err error)
 	Create(dish *storage.Dish) (res *storage.Dish, err error)
 	Update(dish *storage.Dish) (res *storage.Dish, err error)
 	Delete(id uint) error
-	FindDishOfDay(companyID uint) (dish *storage.Dish, err error)
+	FindDishOfDay(restaurantID uint) (dish *storage.Dish, err error)
 	SetDishOfDay(id uint) (dish *storage.Dish, err error)
 }
 
@@ -29,19 +30,20 @@ func NewDishRepository(db *database.Database) DishRepository {
 }
 
 func (r *dishRepository) FindAll() (dishes []*storage.Dish, err error) {
-	if err := r.DB.DB.Preload("Organization").Preload("MenuCategory").Preload("Ingredients").Preload("Allergens").Find(&dishes).Error; err != nil {
+	if err := r.DB.DB.Preload("Restaurant").Preload("MenuCategory").Preload("Ingredients").Preload("Allergens").Find(&dishes).Error; err != nil {
 		return nil, err
 	}
 	return dishes, nil
 }
 
-func (r *dishRepository) FindByOrganizationID(organizationID uint) (dishes []*storage.Dish, err error) {
+// FindByRestaurantID возвращает все блюда для указанного ресторана.
+func (r *dishRepository) FindByRestaurantID(restaurantID uint) (dishes []*storage.Dish, err error) {
 	err = r.DB.DB.
-		Preload("Organization").
+		Preload("Restaurant").
 		Preload("MenuCategory").
 		Preload("Ingredients").
 		Preload("Allergens").
-		Where("organization_id = ?", organizationID).
+		Where("restaurant_id = ?", restaurantID).
 		Find(&dishes).Error
 
 	if err != nil {
@@ -53,7 +55,7 @@ func (r *dishRepository) FindByOrganizationID(organizationID uint) (dishes []*st
 
 func (r *dishRepository) FindByID(id uint) (dish *storage.Dish, err error) {
 	err = r.DB.DB.
-		Preload("Organization").
+		Preload("Restaurant").
 		Preload("MenuCategory").
 		Preload("Ingredients").
 		Preload("Allergens").
@@ -79,7 +81,7 @@ func (r *dishRepository) Create(dish *storage.Dish) (res *storage.Dish, err erro
 func (r *dishRepository) Update(dish *storage.Dish) (res *storage.Dish, err error) {
 	// First, update the dish itself
 	if err := r.DB.DB.Model(&dish).Updates(map[string]interface{}{
-		"organization_id":  dish.OrganizationID,
+		"restaurant_id":    dish.RestaurantID,
 		"menu_category_id": dish.MenuCategoryID,
 		"name":             dish.Name,
 		"price":            dish.Price,
@@ -142,14 +144,15 @@ func (r *dishRepository) Delete(id uint) error {
 	return r.DB.DB.Delete(&storage.Dish{}, id).Error
 }
 
-func (r *dishRepository) FindDishOfDay(companyID uint) (dish *storage.Dish, err error) {
+// FindDishOfDay возвращает блюдо дня для указанного ресторана.
+func (r *dishRepository) FindDishOfDay(restaurantID uint) (dish *storage.Dish, err error) {
 	err = r.DB.DB.
-		Preload("Organization").
+		Preload("Restaurant").
 		Preload("MenuCategory").
 		Preload("Ingredients").
 		Preload("Allergens").
 		Where("is_dish_of_day = ?", true).
-		Where("organization_id = ?", companyID).
+		Where("restaurant_id = ?", restaurantID).
 		First(&dish).
 		Error
 

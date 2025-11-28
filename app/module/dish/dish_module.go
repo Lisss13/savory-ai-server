@@ -27,14 +27,23 @@ var DishModule = fx.Options(
 	fx.Provide(NewDishRouter),
 )
 
+// RegisterDishRoutes регистрирует маршруты для блюд.
+// GET /dishes/restaurant/:restaurant_id - получить блюда ресторана
+// GET /dishes/category/:restaurant_id - получить блюда по категориям
+// GET /dishes/dish-of-day/:restaurant_id - получить блюдо дня
+// POST /dishes/dish-of-day/:id - установить блюдо дня (требует авторизации)
+// GET /dishes/:id - получить блюдо по ID
+// POST /dishes - создать блюдо (требует авторизации)
+// PUT /dishes/:id - обновить блюдо (требует авторизации)
+// DELETE /dishes/:id - удалить блюдо (требует авторизации)
 func (r *DishRouter) RegisterDishRoutes(auth fiber.Handler) {
 	dishController := r.Controller.Dish
 	r.App.Route("/dishes", func(router fiber.Router) {
-		router.Get("/", auth, dishController.GetAll)
-		router.Get("/category", auth, dishController.GetDishCategory)
-		router.Get("/dish-of-day", auth, dishController.GetDishOfDay)
+		router.Get("/restaurant/:restaurant_id", dishController.GetByRestaurantID)
+		router.Get("/category/:restaurant_id", dishController.GetDishCategory)
+		router.Get("/dish-of-day/:restaurant_id", dishController.GetDishOfDay)
 		router.Post("/dish-of-day/:id", auth, dishController.SetDishOfDay)
-		router.Get("/:id", auth, dishController.GetByID)
+		router.Get("/:id", dishController.GetByID)
 		router.Post("/", auth, dishController.Create)
 		router.Put("/:id", auth, dishController.Update)
 		router.Delete("/:id", auth, dishController.Delete)

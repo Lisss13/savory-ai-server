@@ -159,7 +159,7 @@ erDiagram
 
     MenuCategory {
         uint id PK
-        uint organization_id FK
+        uint restaurant_id FK
         string name
         timestamp created_at
         timestamp updated_at
@@ -168,7 +168,7 @@ erDiagram
 
     Dish {
         uint id PK
-        uint organization_id FK
+        uint restaurant_id FK
         uint menu_category_id FK
         string name
         float price
@@ -293,8 +293,8 @@ erDiagram
     Table ||--o{ Reservation : "has"
 
     %% Menu
-    Organization ||--o{ MenuCategory : "has"
-    Organization ||--o{ Dish : "has"
+    Restaurant ||--o{ MenuCategory : "has"
+    Restaurant ||--o{ Dish : "has"
     MenuCategory ||--o{ Dish : "contains"
     Dish ||--o{ Ingredient : "has"
     Dish ||--o{ Allergen : "has"
@@ -627,7 +627,7 @@ package "Menu" <<Frame>> {
     class MenuCategory {
         +id : uint <<PK>>
         --
-        #organization_id : uint <<FK>>
+        #restaurant_id : uint <<FK>>
         name : string
         --
         created_at : timestamp
@@ -638,7 +638,7 @@ package "Menu" <<Frame>> {
     class Dish {
         +id : uint <<PK>>
         --
-        #organization_id : uint <<FK>>
+        #restaurant_id : uint <<FK>>
         #menu_category_id : uint <<FK>>
         name : string
         price : float
@@ -780,9 +780,9 @@ Restaurant "1" --> "0..*" Reservation
 Table "1" --> "0..*" Reservation
 
 ' Menu
-Organization "1" --> "0..*" MenuCategory
+Restaurant "1" --> "0..*" MenuCategory
 MenuCategory "1" --> "0..*" Dish
-Organization "1" --> "0..*" Dish
+Restaurant "1" --> "0..*" Dish
 Dish "1" --> "0..*" Ingredient
 Dish "1" --> "0..*" Allergen
 

@@ -4,11 +4,12 @@ import (
 	"gorm.io/gorm"
 )
 
-// Dish represents a dish in the menu
+// Dish represents a dish in the menu.
+// Блюдо привязано к ресторану и категории меню.
 type Dish struct {
 	gorm.Model
-	OrganizationID uint          `gorm:"column:organization_id;not null" json:"organization_id"`
-	Organization   Organization  `gorm:"foreignKey:OrganizationID" json:"organization"`
+	RestaurantID   uint          `gorm:"column:restaurant_id;not null;index" json:"restaurant_id"`
+	Restaurant     Restaurant    `gorm:"foreignKey:RestaurantID" json:"restaurant"`
 	MenuCategoryID uint          `gorm:"column:menu_category_id;not null" json:"menu_category_id"`
 	MenuCategory   MenuCategory  `gorm:"foreignKey:MenuCategoryID" json:"menu_category"`
 	Name           string        `gorm:"column:name;not null" json:"name"`
