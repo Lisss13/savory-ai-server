@@ -17,8 +17,9 @@ type OrganizationRepository interface {
 	UpdateOrganization(org *storage.Organization) (*storage.Organization, error)
 	AddUserToOrganization(orgID, userID uint) error
 	RemoveUserFromOrganization(orgID, userID uint) error
-	FindOrganizationByAdminID(adminID uint) (*storage.Organization, error)
 	FindOrganizationsByUserID(userID uint) ([]*storage.Organization, error)
+	// FindOrganizationByUserID возвращает первую организацию, в которой пользователь является участником.
+	FindOrganizationByUserID(userID uint) (*storage.Organization, error)
 }
 
 func NewOrganizationRepository(db *database.Database) OrganizationRepository {
@@ -96,20 +97,24 @@ func (or *organizationRepository) FindOrganizationsByUserID(userID uint) ([]*sto
 	return orgs, nil
 }
 
-func (or *organizationRepository) FindOrganizationByAdminID(adminID uint) (*storage.Organization, error) {
-	var org *storage.Organization
+// FindOrganizationByUserID возвращает первую организацию, в которой пользователь является участником.
+// Поиск осуществляется через таблицу organization_users.
+func (or *organizationRepository) FindOrganizationByUserID(userID uint) (*storage.Organization, error) {
+	var org storage.Organization
 	err := or.DB.DB.
+		Model(&storage.Organization{}).
+		Joins("JOIN organization_users ou ON ou.organization_id = organizations.id").
+		Where("ou.user_id = ?", userID).
 		Preload("Admin").
 		Preload("Users").
 		Preload("Languages").
-		First(&org, "admin_id = ?", adminID).
-		Error
+		First(&org).Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	return org, nil
+	return &org, nil
 }
 
 func (or *organizationRepository) AddUserToOrganization(orgID, userID uint) error {

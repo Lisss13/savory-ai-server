@@ -66,7 +66,8 @@ func (as *authService) Login(req payload.LoginRequest) (res payload.LoginRespons
 		return
 	}
 
-	company, err := as.organizationRepo.FindOrganizationByAdminID(user.ID)
+	// Ищем организацию по user ID
+	company, err := as.organizationRepo.FindOrganizationByUserID(user.ID)
 	if err != nil {
 		return
 	}
