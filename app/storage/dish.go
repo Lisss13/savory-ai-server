@@ -17,6 +17,10 @@ type Dish struct {
 	Description    string        `gorm:"column:description" json:"description"`
 	Image          string        `gorm:"column:image" json:"image"`
 	IsDishOfDay    bool          `gorm:"column:is_dish_of_day;default:false" json:"is_dish_of_day"`
+	Proteins       float64       `gorm:"column:proteins;default:0" json:"proteins"`           // Белки (г)
+	Fats           float64       `gorm:"column:fats;default:0" json:"fats"`                   // Жиры (г)
+	Carbohydrates  float64       `gorm:"column:carbohydrates;default:0" json:"carbohydrates"` // Углеводы (г)
+	Calories       float64       `gorm:"column:calories;default:0" json:"calories"`           // Калории (ккал)
 	Ingredients    []*Ingredient `gorm:"foreignKey:DishID" json:"ingredients"`
 	Allergens      []*Allergen   `gorm:"foreignKey:DishID" json:"allergens"`
 }

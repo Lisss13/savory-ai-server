@@ -32,16 +32,20 @@ type MenuCategoryResp struct {
 
 // DishResp представляет блюдо в ответе.
 type DishResp struct {
-	ID           uint             `json:"id"`
-	CreatedAt    time.Time        `json:"created_at"`
-	Restaurant   RestaurantResp   `json:"restaurant"`
-	MenuCategory MenuCategoryResp `json:"menu_category"`
-	Name         string           `json:"name"`
-	Price        float64          `json:"price"`
-	Description  string           `json:"description"`
-	Image        string           `json:"image"`
-	Ingredients  []IngredientResp `json:"ingredients"`
-	Allergens    []AllergenResp   `json:"allergens"`
+	ID            uint             `json:"id"`
+	CreatedAt     time.Time        `json:"created_at"`
+	Restaurant    RestaurantResp   `json:"restaurant"`
+	MenuCategory  MenuCategoryResp `json:"menu_category"`
+	Name          string           `json:"name"`
+	Price         float64          `json:"price"`
+	Description   string           `json:"description"`
+	Image         string           `json:"image"`
+	Proteins      float64          `json:"proteins"`      // Белки (г)
+	Fats          float64          `json:"fats"`          // Жиры (г)
+	Carbohydrates float64          `json:"carbohydrates"` // Углеводы (г)
+	Calories      float64          `json:"calories"`      // Калории (ккал)
+	Ingredients   []IngredientResp `json:"ingredients"`
+	Allergens     []AllergenResp   `json:"allergens"`
 }
 
 // DishesResp представляет список блюд в ответе.

@@ -137,6 +137,10 @@ func (s *dishService) Create(req *payload.CreateDishReq) (*payload.DishResp, err
 		Price:          req.Price,
 		Description:    req.Description,
 		Image:          req.Image,
+		Proteins:       req.Proteins,
+		Fats:           req.Fats,
+		Carbohydrates:  req.Carbohydrates,
+		Calories:       req.Calories,
 		Ingredients:    ingredients,
 		Allergens:      allergens,
 	}
@@ -185,6 +189,10 @@ func (s *dishService) Update(id uint, req *payload.UpdateDishReq) (*payload.Dish
 	existingDish.Price = req.Price
 	existingDish.Description = req.Description
 	existingDish.Image = req.Image
+	existingDish.Proteins = req.Proteins
+	existingDish.Fats = req.Fats
+	existingDish.Carbohydrates = req.Carbohydrates
+	existingDish.Calories = req.Calories
 	existingDish.Ingredients = ingredients
 	existingDish.Allergens = allergens
 
@@ -258,15 +266,19 @@ func mapDishToResponse(dish *storage.Dish) payload.DishResp {
 
 	// Map dish
 	return payload.DishResp{
-		ID:           dish.ID,
-		CreatedAt:    dish.CreatedAt,
-		Restaurant:   restaurantResp,
-		MenuCategory: menuCategoryResp,
-		Name:         dish.Name,
-		Price:        dish.Price,
-		Description:  dish.Description,
-		Image:        dish.Image,
-		Ingredients:  ingredientResps,
-		Allergens:    allergenResps,
+		ID:            dish.ID,
+		CreatedAt:     dish.CreatedAt,
+		Restaurant:    restaurantResp,
+		MenuCategory:  menuCategoryResp,
+		Name:          dish.Name,
+		Price:         dish.Price,
+		Description:   dish.Description,
+		Image:         dish.Image,
+		Proteins:      dish.Proteins,
+		Fats:          dish.Fats,
+		Carbohydrates: dish.Carbohydrates,
+		Calories:      dish.Calories,
+		Ingredients:   ingredientResps,
+		Allergens:     allergenResps,
 	}
 }

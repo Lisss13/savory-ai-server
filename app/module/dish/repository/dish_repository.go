@@ -87,6 +87,10 @@ func (r *dishRepository) Update(dish *storage.Dish) (res *storage.Dish, err erro
 		"price":            dish.Price,
 		"description":      dish.Description,
 		"image":            dish.Image,
+		"proteins":         dish.Proteins,
+		"fats":             dish.Fats,
+		"carbohydrates":    dish.Carbohydrates,
+		"calories":         dish.Calories,
 	}).Error; err != nil {
 		return nil, err
 	}

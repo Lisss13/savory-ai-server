@@ -774,6 +774,22 @@ components:
         image:
           type: string
           description: URL изображения
+        proteins:
+          type: number
+          format: float
+          description: Белки (г)
+        fats:
+          type: number
+          format: float
+          description: Жиры (г)
+        carbohydrates:
+          type: number
+          format: float
+          description: Углеводы (г)
+        calories:
+          type: number
+          format: float
+          description: Калории (ккал)
         ingredients:
           type: array
           description: Список ингредиентов
@@ -854,6 +870,22 @@ components:
         image:
           type: string
           description: URL изображения
+        proteins:
+          type: number
+          format: float
+          description: Белки (г)
+        fats:
+          type: number
+          format: float
+          description: Жиры (г)
+        carbohydrates:
+          type: number
+          format: float
+          description: Углеводы (г)
+        calories:
+          type: number
+          format: float
+          description: Калории (ккал)
         ingredients:
           type: array
           description: Ингредиенты
@@ -909,6 +941,22 @@ components:
         image:
           type: string
           description: URL изображения
+        proteins:
+          type: number
+          format: float
+          description: Белки (г)
+        fats:
+          type: number
+          format: float
+          description: Жиры (г)
+        carbohydrates:
+          type: number
+          format: float
+          description: Углеводы (г)
+        calories:
+          type: number
+          format: float
+          description: Калории (ккал)
         ingredients:
           type: array
           description: Ингредиенты

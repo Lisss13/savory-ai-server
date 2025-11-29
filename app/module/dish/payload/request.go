@@ -20,6 +20,10 @@ type CreateDishReq struct {
 	Price          float64         `json:"price" validate:"required"`
 	Description    string          `json:"description"`
 	Image          string          `json:"image"`
+	Proteins       float64         `json:"proteins"`      // Белки (г)
+	Fats           float64         `json:"fats"`          // Жиры (г)
+	Carbohydrates  float64         `json:"carbohydrates"` // Углеводы (г)
+	Calories       float64         `json:"calories"`      // Калории (ккал)
 	Ingredients    []IngredientReq `json:"ingredients" validate:"required,dive"`
 	Allergens      []AllergenReq   `json:"allergens,omitempty" validate:"omitempty,dive"`
 }
@@ -32,6 +36,10 @@ type UpdateDishReq struct {
 	Price          float64         `json:"price" validate:"required"`
 	Description    string          `json:"description"`
 	Image          string          `json:"image"`
+	Proteins       float64         `json:"proteins"`      // Белки (г)
+	Fats           float64         `json:"fats"`          // Жиры (г)
+	Carbohydrates  float64         `json:"carbohydrates"` // Углеводы (г)
+	Calories       float64         `json:"calories"`      // Калории (ккал)
 	Ingredients    []IngredientReq `json:"ingredients" validate:"required,dive"`
 	Allergens      []AllergenReq   `json:"allergens,omitempty" validate:"omitempty,dive"`
 }
