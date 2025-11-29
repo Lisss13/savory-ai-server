@@ -58,7 +58,7 @@ func (s *fileUploadService) UploadFile(file *multipart.FileHeader, folder string
 
 	// Generate the URL for the file
 	// In a production environment, this would be a full URL with domain
-	url := fmt.Sprintf("/%s/%s/%s", "storage", folder, filename)
+	url := fmt.Sprintf("/%s/%s", folder, filename)
 
 	return &payload.FileUploadResp{
 		Filename:  filename,

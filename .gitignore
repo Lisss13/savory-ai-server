@@ -130,3 +130,4 @@ fabric.properties
 .idea/**/azureSettings.xml
 /storage/public/qr_codes/
 /testsprite_tests/
+/docs/new_feature.md

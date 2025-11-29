@@ -15,7 +15,7 @@ type AllergenReq struct {
 // CreateDishReq запрос на создание нового блюда.
 type CreateDishReq struct {
 	RestaurantID   uint            `json:"restaurant_id" validate:"required"`
-	MenuCategoryID uint            `json:"menu_category_id" validate:"required"`
+	MenuCategoryID uint            `json:"menuCategoryId" validate:"required"`
 	Name           string          `json:"name" validate:"required"`
 	Price          float64         `json:"price" validate:"required"`
 	Description    string          `json:"description"`
@@ -31,7 +31,7 @@ type CreateDishReq struct {
 // UpdateDishReq запрос на обновление блюда.
 type UpdateDishReq struct {
 	RestaurantID   uint            `json:"restaurant_id" validate:"required"`
-	MenuCategoryID uint            `json:"menu_category_id" validate:"required"`
+	MenuCategoryID uint            `json:"menuCategoryId" validate:"required"`
 	Name           string          `json:"name" validate:"required"`
 	Price          float64         `json:"price" validate:"required"`
 	Description    string          `json:"description"`

@@ -59,7 +59,7 @@ Authorization: Bearer {{auth_token}}
 
 {
   "restaurant_id": {{restaurant_id}},
-  "menu_category_id": {{category_id}},
+  "menuCategoryId": {{category_id}},
   "name": "Grilled Salmon",
   "price": 24.99,
   "description": "Fresh Atlantic salmon with vegetables",
@@ -97,7 +97,7 @@ Authorization: Bearer {{auth_token}}
 
 {
   "restaurant_id": {{restaurant_id}},
-  "menu_category_id": {{category_id}},
+  "menuCategoryId": {{category_id}},
   "name": "Classic Bruschetta",
   "price": 8.99,
   "description": "Traditional Italian appetizer",
@@ -177,7 +177,7 @@ Content-Type: application/json
 
 {
   "restaurant_id": {{restaurant_id}},
-  "menu_category_id": {{category_id}},
+  "menuCategoryId": {{category_id}},
   "name": "Grilled Salmon Premium",
   "price": 29.99,
   "description": "Premium Atlantic salmon with seasonal vegetables",
@@ -215,7 +215,7 @@ Content-Type: application/json
 
 {
   "restaurant_id": {{restaurant_id}},
-  "menu_category_id": {{category_id}},
+  "menuCategoryId": {{category_id}},
   "name": "Classic Bruschetta",
   "price": 8.99,
   "description": "Traditional Italian appetizer",

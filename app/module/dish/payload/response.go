@@ -35,7 +35,7 @@ type DishResp struct {
 	ID            uint             `json:"id"`
 	CreatedAt     time.Time        `json:"created_at"`
 	Restaurant    RestaurantResp   `json:"restaurant"`
-	MenuCategory  MenuCategoryResp `json:"menu_category"`
+	MenuCategory  MenuCategoryResp `json:"menuCategory"`
 	Name          string           `json:"name"`
 	Price         float64          `json:"price"`
 	Description   string           `json:"description"`
