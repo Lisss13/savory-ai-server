@@ -198,7 +198,6 @@ func (as *authService) RequestPasswordReset(req payload.RequestPasswordResetRequ
 	}
 
 	// Generate a random 6-digit code
-	rand.Seed(time.Now().UnixNano())
 	code := strconv.Itoa(100000 + rand.Intn(900000)) // 6-digit code
 
 	// Set expiration time (e.g., 1 hour from now)

@@ -120,11 +120,11 @@ func PingHandler(c *fiber.Ctx) error {
 }
 
 func HealthCheckHandler(c *fiber.Ctx) error {
-	user := c.Locals("user").(jwt.JWTData)
+	currentUser := c.Locals("user").(jwt.JWTData)
 	res := c.JSON(fiber.Map{
-		"id":         user.ID,
-		"email":      user.Email,
-		"company_id": user.CompanyID,
+		"id":         currentUser.ID,
+		"email":      currentUser.Email,
+		"company_id": currentUser.CompanyID,
 	})
 	return response.RespStatusOk(c, res, "Health check success")
 }
