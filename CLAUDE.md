@@ -6,6 +6,11 @@ Go REST API сервер для системы управления рестор
 
 **Основной стек:** Go, Fiber v2, GORM, PostgreSQL, JWT
 
+## Кто такие пользователи системы
+Пользователь - это администратор организации, владеющей ресторанами.
+Посетители - гости ресторанов, которые могут сканировать QR-коды для взаимодействия с меню и бронирования столиков. через чат
+Админестраторы - пользователи с ролью "admin", которые имеют расширенные права для управления системой.
+
 ## Команды
 
 ```bash
@@ -69,6 +74,7 @@ server/
 | Question | question.go | Вопрос для чата (с chat_type) |
 | Language | language.go | Поддерживаемый язык |
 | AdminLog | admin_log.go | Лог действий администратора |
+| SupportTicket | support_ticket.go | Заявка в службу поддержки |
 
 ### Чат-модели
 
@@ -102,6 +108,10 @@ ActionActivate, ActionDeactivate, ActionView
 UserAuthor       = "user"
 BotAuthor        = "bot"
 RestaurantAuthor = "restaurant"
+
+// SupportTicketStatus (support_ticket.go)
+SupportTicketStatusInProgress = "in_progress" // Взят в работу
+SupportTicketStatusCompleted  = "completed"   // Завершен
 ```
 
 ## Создание нового модуля
@@ -574,12 +584,14 @@ db.Where("id IN ?", ids).Find(&items)
 | subscription | Подписки организаций | /subscriptions |
 | admin | Админ-панель (role: admin) | /admin |
 | ai_reservation | AI-ассистент бронирования | /ai-reservation |
+| support | Служба поддержки | /support, /admin/support |
 
 ### Иерархия сущностей
 
 ```
 Organization (владелец)
 ├── User (admin организации)
+│   └── SupportTicket[] (заявки в поддержку)
 ├── Restaurant[] (рестораны)
 │   ├── Table[] (столики)
 │   │   └── TableChatSession[] (чат-сессии столика)
@@ -604,6 +616,10 @@ Organization (владелец)
 **Два типа чат-сессий:**
 - `TableChatSession` - чат для столика (гость сканирует QR)
 - `RestaurantChatSession` - общий чат ресторана
+
+### Модуль службы поддержки (support)
+
+Позволяет пользователям создавать заявки в поддержку, а администраторам - управлять ими.
 
 ## Конфигурация
 
@@ -655,6 +671,8 @@ POST /reservations/:id/cancel/public
 ### Admin-only (role: admin)
 ```
 GET/POST/PATCH/DELETE /admin/*
+GET    /admin/support            - все заявки в поддержку
+PATCH  /admin/support/:id/status - изменить статус заявки
 ```
 
 ## Частые задачи

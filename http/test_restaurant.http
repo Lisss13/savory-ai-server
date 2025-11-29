@@ -1700,3 +1700,121 @@ Content-Type: application/json
         client.assert(response.status === 400 || response.status === 422, "Expected validation error");
     });
 %}
+
+### 22.1 Создать заявку в поддержку
+POST {{baseUrl}}/support
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Проблема с QR-кодом",
+  "description": "При сканировании QR-кода на столе №5 появляется ошибка 404. Пожалуйста, проверьте настройки.",
+  "email": "{{user_email}}",
+  "phone": "+79001234567"
+}
+
+> {%
+    client.test("Create support ticket successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+
+    if (response.body.data && response.body.data.id) {
+        client.global.set("support_ticket_id", response.body.data.id);
+    }
+%}
+
+### 22.2 Создать вторую заявку
+POST {{baseUrl}}/support
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Вопрос по подписке",
+  "description": "Хотел бы узнать о возможности продления подписки на более выгодных условиях.",
+  "email": "{{user_email}}"
+}
+
+> {%
+    client.test("Create second support ticket successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+
+    if (response.body.data && response.body.data.id) {
+        client.global.set("support_ticket_id_2", response.body.data.id);
+    }
+%}
+
+### 22.3 Получить мои заявки
+GET {{baseUrl}}/support/my
+Authorization: Bearer {{token}}
+
+> {%
+    client.test("Get my support tickets successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+
+    if (response.body.data && response.body.data.tickets && response.body.data.tickets.length > 0) {
+        client.global.set("support_ticket_id", response.body.data.tickets[0].id);
+    }
+%}
+
+### 22.4 Получить мои заявки с пагинацией
+GET {{baseUrl}}/support/my?page=1&page_size=5
+Authorization: Bearer {{token}}
+
+> {%
+    client.test("Get my support tickets with pagination successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+%}
+
+### 22.5 Получить заявку по ID
+GET {{baseUrl}}/support/{{support_ticket_id}}
+Authorization: Bearer {{token}}
+
+> {%
+    client.test("Get support ticket by ID successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+%}
+
+### 22.6 Попытка получить заявку без авторизации
+GET {{baseUrl}}/support/{{support_ticket_id}}
+
+> {%
+    client.test("Get support ticket without auth returns 401", function() {
+        client.assert(response.status === 401, "Expected 401 Unauthorized");
+    });
+%}
+
+### 22.7 Попытка создать заявку без обязательных полей
+POST {{baseUrl}}/support
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Только заголовок"
+}
+
+> {%
+    client.test("Create ticket without required fields returns error", function() {
+        client.assert(response.status === 400 || response.status === 422, "Expected validation error");
+    });
+%}
+
+### 22.8 Попытка создать заявку с невалидным email
+POST {{baseUrl}}/support
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Тестовая заявка",
+  "description": "Описание проблемы",
+  "email": "invalid-email"
+}
+
+> {%
+    client.test("Create ticket with invalid email returns error", function() {
+        client.assert(response.status === 400 || response.status === 422, "Expected validation error");
+    });
+%}

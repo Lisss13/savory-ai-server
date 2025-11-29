@@ -51,30 +51,30 @@
 ### Restaurant Module
 | Код | Swagger | Статус | Примечание |
 |-----|---------|--------|------------|
-| `GET /restaurants` | `/restaurants` | ❓ Проверить | |
-| `GET /restaurants/:id` | `/restaurants/{id}` | ❓ Проверить | |
-| `GET /restaurants/organization/:organization_id` | `/restaurants/organization/{organization_id}` | ❓ Проверить | |
-| `POST /restaurants` | `/restaurants` | ❓ Проверить | |
-| `PUT /restaurants/:id` | `/restaurants/{id}` | ❓ Проверить | |
-| `DELETE /restaurants/:id` | `/restaurants/{id}` | ❓ Проверить | |
+| `GET /restaurants` | `/restaurants` | ✅ OK | auth |
+| `GET /restaurants/:id` | `/restaurants/{id}` | ✅ OK | auth |
+| `GET /restaurants/organization/:organization_id` | `/restaurants/organization/{organization_id}` | ✅ OK | auth |
+| `POST /restaurants` | `/restaurants` | ✅ OK | auth |
+| `PUT /restaurants/:id` | `/restaurants/{id}` | ✅ OK | auth |
+| `DELETE /restaurants/:id` | `/restaurants/{id}` | ✅ OK | auth |
 
 ### Table Module
 | Код | Swagger | Статус | Примечание |
 |-----|---------|--------|------------|
-| `GET /tables` | `/tables` | ❓ Проверить | |
-| `GET /tables/:id` | `/tables/{id}` | ❓ Проверить | |
-| `GET /tables/restaurant/:restaurant_id` | `/tables/restaurant/{restaurant_id}` | ❓ Проверить | |
-| `POST /tables` | `/tables` | ❓ Проверить | |
-| `PUT /tables/:id` | `/tables/{id}` | ❓ Проверить | |
-| `DELETE /tables/:id` | `/tables/{id}` | ❓ Проверить | |
+| `GET /tables` | `/tables` | ✅ OK | auth |
+| `GET /tables/:id` | `/tables/{id}` | ✅ OK | auth |
+| `GET /tables/restaurant/:restaurant_id` | `/tables/restaurant/{restaurant_id}` | ✅ OK | auth |
+| `POST /tables` | `/tables` | ✅ OK | auth |
+| `PUT /tables/:id` | `/tables/{id}` | ✅ OK | auth |
+| `DELETE /tables/:id` | `/tables/{id}` | ✅ OK | auth |
 
 ### Menu Category Module
 | Код | Swagger | Статус | Примечание |
 |-----|---------|--------|------------|
 | `GET /categories/restaurant/:restaurant_id` | `/categories/restaurant/{restaurant_id}` | ✅ OK | Публичный |
 | `GET /categories/:id` | `/categories/{id}` | ✅ OK | Публичный |
-| `POST /categories` | `/categories` | ❓ Проверить | Требует auth |
-| `DELETE /categories/:id` | `/categories/{id}` | ❓ Проверить | Требует auth |
+| `POST /categories` | `/categories` | ✅ OK | auth |
+| `DELETE /categories/:id` | `/categories/{id}` | ✅ OK | auth |
 
 ### Dish Module
 | Код | Swagger | Статус | Примечание |
@@ -82,92 +82,101 @@
 | `GET /dishes/restaurant/:restaurant_id` | `/dishes/restaurant/{restaurant_id}` | ✅ OK | Публичный |
 | `GET /dishes/category/:restaurant_id` | `/dishes/category/{restaurant_id}` | ✅ OK | Публичный |
 | `GET /dishes/dish-of-day/:restaurant_id` | `/dishes/dish-of-day/{restaurant_id}` | ✅ OK | Публичный |
-| `POST /dishes/dish-of-day/:id` | `/dishes/dish-of-day/{id}` | ❓ Проверить | Требует auth |
+| `POST /dishes/dish-of-day/:id` | `/dishes/dish-of-day/{id}` | ✅ OK | auth |
 | `GET /dishes/:id` | `/dishes/{id}` | ✅ OK | Публичный |
-| `POST /dishes` | `/dishes` | ❓ Проверить | Требует auth |
-| `PUT /dishes/:id` | `/dishes/{id}` | ❓ Проверить | Требует auth |
-| `DELETE /dishes/:id` | `/dishes/{id}` | ❓ Проверить | Требует auth |
+| `POST /dishes` | `/dishes` | ✅ OK | auth |
+| `PUT /dishes/:id` | `/dishes/{id}` | ✅ OK | auth |
+| `DELETE /dishes/:id` | `/dishes/{id}` | ✅ OK | auth |
 
 ### Question Module
 | Код | Swagger | Статус | Примечание |
 |-----|---------|--------|------------|
-| `GET /questions` | `/questions` | ❓ Проверить | |
-| `GET /questions/language/:code` | `/questions/language/{code}` | ❓ Проверить | |
-| `POST /questions` | `/questions` | ❓ Проверить | |
-| `PUT /questions/:id` | `/questions/{id}` | ❓ Проверить | |
-| `DELETE /questions/:id` | `/questions/{id}` | ❓ Проверить | |
+| `GET /questions` | `/questions` | ✅ OK | auth |
+| `GET /questions/language/:code` | `/questions/language/{code}` | ✅ OK | auth |
+| `POST /questions` | `/questions` | ✅ OK | auth |
+| `PUT /questions/:id` | `/questions/{id}` | ✅ OK | auth |
+| `DELETE /questions/:id` | `/questions/{id}` | ✅ OK | auth |
 
 ### QR Code Module
 | Код | Swagger | Статус | Примечание |
 |-----|---------|--------|------------|
-| `GET /qrcodes/restaurant/:restaurant_id` | | ❓ Проверить | |
-| `GET /qrcodes/restaurant/:restaurant_id/download` | | ❓ Проверить | |
-| `GET /qrcodes/restaurant/:restaurant_id/table/:table_id` | | ❓ Проверить | |
-| `GET /qrcodes/restaurant/:restaurant_id/table/:table_id/download` | | ❓ Проверить | |
+| `GET /qrcodes/restaurant/:restaurant_id` | `/qrcodes/restaurant/{restaurant_id}` | ✅ OK | Публичный |
+| `GET /qrcodes/restaurant/:restaurant_id/download` | `/qrcodes/restaurant/{restaurant_id}/download` | ✅ OK | Публичный |
+| `GET /qrcodes/restaurant/:restaurant_id/table/:table_id` | `/qrcodes/restaurant/{restaurant_id}/table/{table_id}` | ✅ OK | Публичный |
+| `GET /qrcodes/restaurant/:restaurant_id/table/:table_id/download` | `/qrcodes/restaurant/{restaurant_id}/table/{table_id}/download` | ✅ OK | Публичный |
 
 ### File Upload Module
 | Код | Swagger | Статус | Примечание |
 |-----|---------|--------|------------|
-| `POST /uploads/images` | `/uploads/images` | ❓ Проверить | |
+| `POST /uploads/images` | `/uploads/images` | ✅ OK | Публичный |
 
 ### Chat Module
 | Код | Swagger | Статус | Примечание |
 |-----|---------|--------|------------|
-| `GET /chat/restaurant/:restaurant_id` | | ❓ Проверить | Legacy |
-| `POST /chat/table/session/start` | | ❓ Проверить | |
-| `POST /chat/table/session/close/:session_id` | | ❓ Проверить | |
-| `POST /chat/table/message/send` | | ❓ Проверить | |
-| `GET /chat/table/session/:session_id/messages` | | ❓ Проверить | |
-| `GET /chat/table/session/:table_id` | | ❓ Проверить | |
-| `POST /chat/restaurant/session/start` | | ❓ Проверить | |
-| `POST /chat/restaurant/session/close/:session_id` | | ❓ Проверить | |
-| `POST /chat/restaurant/message/send` | | ❓ Проверить | |
-| `GET /chat/restaurant/session/:session_id/messages` | | ❓ Проверить | |
-| `GET /chat/restaurant/sessions/:restaurant_id` | | ❓ Проверить | |
+| `GET /chat/restaurant/:restaurant_id` | `/chat/restaurant/{restaurant_id}` | ✅ OK | Legacy, deprecated |
+| `POST /chat/table/session/start` | `/chat/table/session/start` | ✅ OK | Публичный |
+| `POST /chat/table/session/close/:session_id` | `/chat/table/session/close/{session_id}` | ✅ OK | Публичный |
+| `POST /chat/table/message/send` | `/chat/table/message/send` | ✅ OK | Публичный |
+| `GET /chat/table/session/:session_id/messages` | `/chat/table/session/{session_id}/messages` | ✅ OK | Публичный |
+| `GET /chat/table/session/:table_id` | `/chat/table/session/{table_id}` | ✅ OK | Публичный |
+| `POST /chat/restaurant/session/start` | `/chat/restaurant/session/start` | ✅ OK | Публичный |
+| `POST /chat/restaurant/session/close/:session_id` | `/chat/restaurant/session/close/{session_id}` | ✅ OK | Публичный |
+| `POST /chat/restaurant/message/send` | `/chat/restaurant/message/send` | ✅ OK | Публичный |
+| `GET /chat/restaurant/session/:session_id/messages` | `/chat/restaurant/session/{session_id}/messages` | ✅ OK | Публичный |
+| `GET /chat/restaurant/sessions/:restaurant_id` | `/chat/restaurant/sessions/{restaurant_id}` | ✅ OK | Публичный |
 
 ### Reservation Module
 | Код | Swagger | Статус | Примечание |
 |-----|---------|--------|------------|
-| `GET /reservations/available/:restaurant_id` | `/reservations/available/{restaurant_id}` | ❓ Проверить | Публичный |
-| `GET /reservations/my` | `/reservations/my` | ❓ Проверить | Публичный (query: phone) |
-| `POST /reservations` | `/reservations` | ❓ Проверить | Публичный |
-| `POST /reservations/:id/cancel/public` | `/reservations/{id}/cancel/public` | ❓ Проверить | Публичный |
-| `GET /reservations` | `/reservations` | ❓ Проверить | Требует auth |
-| `GET /reservations/:id` | `/reservations/{id}` | ❓ Проверить | Требует auth |
-| `GET /reservations/restaurant/:restaurant_id` | `/reservations/restaurant/{restaurant_id}` | ❓ Проверить | Требует auth |
-| `PATCH /reservations/:id` | `/reservations/{id}` | ❓ Проверить | Требует auth |
-| `POST /reservations/:id/cancel` | `/reservations/{id}/cancel` | ❓ Проверить | Требует auth |
-| `DELETE /reservations/:id` | `/reservations/{id}` | ❓ Проверить | Требует auth |
+| `GET /reservations/available/:restaurant_id` | `/reservations/available/{restaurant_id}` | ✅ OK | Публичный |
+| `GET /reservations/my` | `/reservations/my` | ✅ OK | Публичный (query: phone) |
+| `POST /reservations` | `/reservations` | ✅ OK | Публичный |
+| `POST /reservations/:id/cancel/public` | `/reservations/{id}/cancel/public` | ✅ OK | Публичный |
+| `GET /reservations` | `/reservations` | ✅ OK | auth |
+| `GET /reservations/:id` | `/reservations/{id}` | ✅ OK | auth |
+| `GET /reservations/restaurant/:restaurant_id` | `/reservations/restaurant/{restaurant_id}` | ✅ OK | auth |
+| `PATCH /reservations/:id` | `/reservations/{id}` | ✅ OK | auth |
+| `POST /reservations/:id/cancel` | `/reservations/{id}/cancel` | ✅ OK | auth |
+| `DELETE /reservations/:id` | `/reservations/{id}` | ✅ OK | auth |
 
 ### Subscription Module
 | Код | Swagger | Статус | Примечание |
 |-----|---------|--------|------------|
-| `GET /subscriptions` | `/subscriptions` | ❓ Проверить | |
-| `GET /subscriptions/:id` | `/subscriptions/{id}` | ❓ Проверить | |
-| `GET /subscriptions/organization/:organizationId` | `/subscriptions/organization/{organizationId}` | ❓ Проверить | |
-| `GET /subscriptions/organization/:organizationId/active` | `/subscriptions/organization/{organizationId}/active` | ❓ Проверить | |
-| `POST /subscriptions` | `/subscriptions` | ❓ Проверить | |
-| `PUT /subscriptions/:id` | `/subscriptions/{id}` | ❓ Проверить | |
-| `POST /subscriptions/:id/extend` | `/subscriptions/{id}/extend` | ❓ Проверить | |
-| `POST /subscriptions/:id/deactivate` | `/subscriptions/{id}/deactivate` | ❓ Проверить | |
-| `DELETE /subscriptions/:id` | `/subscriptions/{id}` | ❓ Проверить | |
+| `GET /subscriptions` | `/subscriptions` | ✅ OK | auth |
+| `GET /subscriptions/:id` | `/subscriptions/{id}` | ✅ OK | auth |
+| `GET /subscriptions/organization/:organizationId` | `/subscriptions/organization/{organizationId}` | ✅ OK | auth |
+| `GET /subscriptions/organization/:organizationId/active` | `/subscriptions/organization/{organizationId}/active` | ✅ OK | auth |
+| `POST /subscriptions` | `/subscriptions` | ✅ OK | auth |
+| `PUT /subscriptions/:id` | `/subscriptions/{id}` | ✅ OK | auth |
+| `POST /subscriptions/:id/extend` | `/subscriptions/{id}/extend` | ✅ OK | auth |
+| `POST /subscriptions/:id/deactivate` | `/subscriptions/{id}/deactivate` | ✅ OK | auth |
+| `DELETE /subscriptions/:id` | `/subscriptions/{id}` | ✅ OK | auth |
 
 ### Admin Module
 | Код | Swagger | Статус | Примечание |
 |-----|---------|--------|------------|
-| `GET /admin/stats` | `/admin/stats` | ❓ Проверить | Требует role: admin |
-| `GET /admin/users` | `/admin/users` | ❓ Проверить | |
-| `GET /admin/users/:id` | `/admin/users/{id}` | ❓ Проверить | |
-| `PATCH /admin/users/:id/status` | `/admin/users/{id}/status` | ❓ Проверить | |
-| `PATCH /admin/users/:id/role` | `/admin/users/{id}/role` | ❓ Проверить | |
-| `DELETE /admin/users/:id` | `/admin/users/{id}` | ❓ Проверить | |
-| `GET /admin/organizations` | `/admin/organizations` | ❓ Проверить | |
-| `GET /admin/organizations/:id` | `/admin/organizations/{id}` | ❓ Проверить | |
-| `DELETE /admin/organizations/:id` | `/admin/organizations/{id}` | ❓ Проверить | |
-| `GET /admin/dishes` | `/admin/dishes` | ❓ Проверить | |
-| `DELETE /admin/dishes/:id` | `/admin/dishes/{id}` | ❓ Проверить | |
-| `GET /admin/logs` | `/admin/logs` | ❓ Проверить | |
-| `GET /admin/logs/me` | `/admin/logs/me` | ❓ Проверить | |
+| `GET /admin/stats` | `/admin/stats` | ✅ OK | admin |
+| `GET /admin/users` | `/admin/users` | ✅ OK | admin |
+| `GET /admin/users/:id` | `/admin/users/{id}` | ✅ OK | admin |
+| `PATCH /admin/users/:id/status` | `/admin/users/{id}/status` | ✅ OK | admin |
+| `PATCH /admin/users/:id/role` | `/admin/users/{id}/role` | ✅ OK | admin |
+| `DELETE /admin/users/:id` | `/admin/users/{id}` | ✅ OK | admin |
+| `GET /admin/organizations` | `/admin/organizations` | ✅ OK | admin |
+| `GET /admin/organizations/:id` | `/admin/organizations/{id}` | ✅ OK | admin |
+| `DELETE /admin/organizations/:id` | `/admin/organizations/{id}` | ✅ OK | admin |
+| `GET /admin/dishes` | `/admin/dishes` | ✅ OK | admin |
+| `DELETE /admin/dishes/:id` | `/admin/dishes/{id}` | ✅ OK | admin |
+| `GET /admin/logs` | `/admin/logs` | ✅ OK | admin |
+| `GET /admin/logs/me` | `/admin/logs/me` | ✅ OK | admin |
+
+### Support Module
+| Код | Swagger | Статус | Примечание |
+|-----|---------|--------|------------|
+| `POST /support` | `/support` | ✅ OK | auth |
+| `GET /support/my` | `/support/my` | ✅ OK | auth |
+| `GET /support/:id` | `/support/{id}` | ✅ OK | auth |
+| `GET /admin/support` | `/admin/support` | ✅ OK | admin |
+| `PATCH /admin/support/:id/status` | `/admin/support/{id}/status` | ✅ OK | admin |
 
 ---
 
@@ -266,6 +275,12 @@
 - [ ] `UpdateUserStatusRequest` - соответствует payload/request.go
 - [ ] `UpdateUserRoleRequest` - соответствует payload/request.go
 
+### Support
+- [ ] `SupportTicketResponse` - соответствует payload/response.go (id, user_id, user_name, user_email, title, description, email, phone, status, created_at, updated_at)
+- [ ] `SupportTicketsListResponse` - соответствует payload/response.go (tickets[], total_count, page, page_size)
+- [ ] `CreateSupportTicketRequest` - соответствует payload/request.go (title, description, email, phone)
+- [ ] `UpdateSupportTicketStatusRequest` - соответствует payload/request.go (status: in_progress | completed)
+
 ---
 
 ## 3. Проверка аутентификации
@@ -290,8 +305,15 @@
 ### Защищённые эндпоинты (требуют auth)
 - [ ] Все остальные эндпоинты должны иметь `security: BearerAuth`
 
+### Support эндпоинты (требуют auth)
+- [ ] `POST /support` - Создать заявку
+- [ ] `GET /support/my` - Мои заявки
+- [ ] `GET /support/{id}` - Заявка по ID
+
 ### Admin-only эндпоинты
 - [ ] Все `/admin/*` эндпоинты должны проверять роль admin
+- [ ] `GET /admin/support` - Все заявки в поддержку
+- [ ] `PATCH /admin/support/{id}/status` - Обновить статус заявки
 
 ---
 
@@ -348,18 +370,19 @@
 
 | Раздел | Статус |
 |--------|--------|
-| Auth | ⏳ Требует проверки |
-| User | ⏳ Требует проверки |
-| Organization | ⏳ Требует проверки |
-| Language | ⏳ Требует проверки |
-| Restaurant | ⏳ Требует проверки |
-| Table | ⏳ Требует проверки |
+| Auth | ✅ Проверено |
+| User | ✅ Проверено |
+| Organization | ✅ Проверено |
+| Language | ✅ Проверено |
+| Restaurant | ✅ Проверено |
+| Table | ✅ Проверено |
 | Menu Category | ✅ Проверено |
 | Dish | ✅ Проверено |
-| Question | ⏳ Требует проверки |
-| QR Code | ⏳ Требует проверки |
-| File Upload | ⏳ Требует проверки |
-| Chat | ⏳ Требует проверки |
-| Reservation | ⏳ Требует проверки |
-| Subscription | ⏳ Требует проверки |
-| Admin | ✅ Проверено (схемы) |
+| Question | ✅ Проверено |
+| QR Code | ✅ Проверено |
+| File Upload | ✅ Проверено |
+| Chat | ✅ Проверено |
+| Reservation | ✅ Проверено |
+| Subscription | ✅ Проверено |
+| Admin | ✅ Проверено |
+| Support | ✅ Проверено |

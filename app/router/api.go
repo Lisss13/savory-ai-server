@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"savory-ai-server/app/middleware"
 	"savory-ai-server/app/module/admin"
+	adminMiddleware "savory-ai-server/app/module/admin/middleware"
 	"savory-ai-server/app/module/auth"
 	"savory-ai-server/app/module/chat"
 	"savory-ai-server/app/module/dish"
@@ -15,6 +16,7 @@ import (
 	"savory-ai-server/app/module/reservation"
 	"savory-ai-server/app/module/restaurant"
 	"savory-ai-server/app/module/subscription"
+	"savory-ai-server/app/module/support"
 	"savory-ai-server/app/module/table"
 	"savory-ai-server/app/module/user"
 	"savory-ai-server/utils/config"
@@ -40,6 +42,7 @@ type Router struct {
 	ChatRouter         *chat.ChatRouter
 	SubscriptionRouter *subscription.SubscriptionRouter
 	AdminRouter        *admin.AdminRouter
+	SupportRouter      *support.SupportRouter
 }
 
 func NewRouter(
@@ -60,6 +63,7 @@ func NewRouter(
 	chatRouter *chat.ChatRouter,
 	subscriptionRouter *subscription.SubscriptionRouter,
 	adminRouter *admin.AdminRouter,
+	supportRouter *support.SupportRouter,
 ) *Router {
 	return &Router{
 		App:                fiber,
@@ -78,6 +82,7 @@ func NewRouter(
 		ChatRouter:         chatRouter,
 		SubscriptionRouter: subscriptionRouter,
 		AdminRouter:        adminRouter,
+		SupportRouter:      supportRouter,
 	}
 }
 
@@ -87,6 +92,7 @@ func (r *Router) Register() {
 	r.App.Get("/ping", PingHandler)
 
 	authRequired := middleware.AuthRequired(r.Cfg)
+	adminRequired := adminMiddleware.AdminRequired()
 
 	r.App.Get("/auth/chek", authRequired, HealthCheckHandler)
 
@@ -105,6 +111,8 @@ func (r *Router) Register() {
 	r.ChatRouter.RegisterChatRoutes()
 	r.SubscriptionRouter.RegisterSubscriptionRoutes(authRequired)
 	r.AdminRouter.RegisterAdminRoutes(authRequired)
+	r.SupportRouter.RegisterSupportRoutes(authRequired)
+	r.SupportRouter.RegisterAdminSupportRoutes(authRequired, adminRequired)
 }
 
 func PingHandler(c *fiber.Ctx) error {

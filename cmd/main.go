@@ -17,6 +17,7 @@ import (
 	"savory-ai-server/app/module/reservation"
 	"savory-ai-server/app/module/restaurant"
 	"savory-ai-server/app/module/subscription"
+	"savory-ai-server/app/module/support"
 	"savory-ai-server/app/module/table"
 	"savory-ai-server/app/module/user"
 	"savory-ai-server/app/router"
@@ -57,6 +58,7 @@ func main() {
 		chat.ChatModule,
 		subscription.SubscriptionModule,
 		admin.AdminModule,
+		support.SupportModule,
 
 		// start aplication
 		fx.Invoke(bootstrap.Start),
