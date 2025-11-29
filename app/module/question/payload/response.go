@@ -17,6 +17,8 @@ type QuestionResp struct {
 	Language  *LanguageResp `json:"language,omitempty"`
 	// ChatType — тип чата: "reservation" (бронирование) или "menu" (меню).
 	ChatType string `json:"chat_type"`
+	// DisplayOrder — порядок отображения вопроса (меньше = выше в списке).
+	DisplayOrder int `json:"display_order"`
 }
 
 // QuestionsResp — список вопросов в ответе API.

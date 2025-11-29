@@ -24,6 +24,11 @@ type QuestionRepository interface {
 	Create(question *storage.Question) (res *storage.Question, err error)
 	Update(question *storage.Question) (res *storage.Question, err error)
 	Delete(id uint) error
+	// GetMaxDisplayOrder возвращает максимальный display_order для организации.
+	// Используется при создании нового вопроса для автоинкремента порядка.
+	GetMaxDisplayOrder(organizationID uint) (int, error)
+	// UpdateDisplayOrder обновляет порядок отображения для вопроса.
+	UpdateDisplayOrder(questionID uint, displayOrder int) error
 }
 
 // NewQuestionRepository создаёт новый экземпляр репозитория вопросов.
@@ -34,14 +39,14 @@ func NewQuestionRepository(db *database.Database) QuestionRepository {
 }
 
 func (r *questionRepository) FindAll() (questions []*storage.Question, err error) {
-	if err := r.DB.DB.Preload("Organization").Preload("Language").Find(&questions).Error; err != nil {
+	if err := r.DB.DB.Preload("Organization").Preload("Language").Order("display_order ASC").Find(&questions).Error; err != nil {
 		return nil, err
 	}
 	return questions, nil
 }
 
 func (r *questionRepository) FindByOrganizationID(organizationID uint) (questions []*storage.Question, err error) {
-	if err := r.DB.DB.Preload("Organization").Preload("Language").Where("organization_id = ?", organizationID).Find(&questions).Error; err != nil {
+	if err := r.DB.DB.Preload("Organization").Preload("Language").Where("organization_id = ?", organizationID).Order("display_order ASC").Find(&questions).Error; err != nil {
 		return nil, err
 	}
 	return questions, nil
@@ -56,7 +61,7 @@ func (r *questionRepository) FindByOrganizationIDAndLanguage(organizationID uint
 		query = query.Where("language_id IS NULL")
 	}
 
-	if err := query.Find(&questions).Error; err != nil {
+	if err := query.Order("display_order ASC").Find(&questions).Error; err != nil {
 		return nil, err
 	}
 	return questions, nil
@@ -98,6 +103,7 @@ func (r *questionRepository) Delete(id uint) error {
 
 // FindByOrganizationIDAndChatType возвращает вопросы организации по типу чата.
 // Если chatType пустой — возвращает все вопросы организации.
+// Результаты отсортированы по display_order (по возрастанию).
 func (r *questionRepository) FindByOrganizationIDAndChatType(organizationID uint, chatType string) (questions []*storage.Question, err error) {
 	query := r.DB.DB.Preload("Organization").Preload("Language").Where("organization_id = ?", organizationID)
 
@@ -105,7 +111,7 @@ func (r *questionRepository) FindByOrganizationIDAndChatType(organizationID uint
 		query = query.Where("chat_type = ?", chatType)
 	}
 
-	if err := query.Find(&questions).Error; err != nil {
+	if err := query.Order("display_order ASC").Find(&questions).Error; err != nil {
 		return nil, err
 	}
 	return questions, nil
@@ -114,6 +120,7 @@ func (r *questionRepository) FindByOrganizationIDAndChatType(organizationID uint
 // FindByOrganizationIDLanguageAndChatType возвращает вопросы с комбинированной фильтрацией.
 // Фильтрует по организации, коду языка и типу чата.
 // Пустые значения languageCode и chatType игнорируются при фильтрации.
+// Результаты отсортированы по display_order (по возрастанию).
 func (r *questionRepository) FindByOrganizationIDLanguageAndChatType(organizationID uint, languageCode string, chatType string) (questions []*storage.Question, err error) {
 	query := r.DB.DB.Preload("Organization").Preload("Language").Where("organization_id = ?", organizationID)
 
@@ -121,7 +128,7 @@ func (r *questionRepository) FindByOrganizationIDLanguageAndChatType(organizatio
 		query = query.Where("chat_type = ?", chatType)
 	}
 
-	if err := query.Find(&questions).Error; err != nil {
+	if err := query.Order("display_order ASC").Find(&questions).Error; err != nil {
 		return nil, err
 	}
 
@@ -137,4 +144,28 @@ func (r *questionRepository) FindByOrganizationIDLanguageAndChatType(organizatio
 	}
 
 	return questions, nil
+}
+
+// GetMaxDisplayOrder возвращает максимальный display_order для организации.
+// Если вопросов нет, возвращает -1 (чтобы первый вопрос получил 0).
+func (r *questionRepository) GetMaxDisplayOrder(organizationID uint) (int, error) {
+	var maxOrder *int
+	err := r.DB.DB.Model(&storage.Question{}).
+		Where("organization_id = ?", organizationID).
+		Select("MAX(display_order)").
+		Scan(&maxOrder).Error
+	if err != nil {
+		return 0, err
+	}
+	if maxOrder == nil {
+		return -1, nil
+	}
+	return *maxOrder, nil
+}
+
+// UpdateDisplayOrder обновляет порядок отображения для вопроса.
+func (r *questionRepository) UpdateDisplayOrder(questionID uint, displayOrder int) error {
+	return r.DB.DB.Model(&storage.Question{}).
+		Where("id = ?", questionID).
+		Update("display_order", displayOrder).Error
 }

@@ -19,6 +19,8 @@ type QuestionController interface {
 	Create(c *fiber.Ctx) error
 	Update(c *fiber.Ctx) error
 	Delete(c *fiber.Ctx) error
+	// Reorder изменяет порядок отображения вопросов.
+	Reorder(c *fiber.Ctx) error
 }
 
 func NewQuestionController(service service.QuestionService) QuestionController {
@@ -172,6 +174,54 @@ func (c *questionController) Delete(ctx *fiber.Ctx) error {
 			ID uint `json:"id"`
 		}{ID: uint(id)},
 		Messages: response.Messages{"Question deleted successfully"},
+		Code:     fiber.StatusOK,
+	})
+}
+
+// Reorder изменяет порядок отображения вопросов.
+//
+// Метод: PUT /questions/reorder
+// Требует: JWT авторизация
+//
+// Body:
+//
+//	{
+//	  "questionIds": [3, 1, 2]  // ID вопросов в желаемом порядке
+//	}
+//
+// Первый элемент массива получит display_order = 0, второй = 1 и т.д.
+func (c *questionController) Reorder(ctx *fiber.Ctx) error {
+	req := new(payload.ReorderQuestionsReq)
+	if err := ctx.BodyParser(req); err != nil {
+		return response.Resp(ctx, response.Response{
+			Messages: response.Messages{"Invalid request body"},
+			Code:     fiber.StatusBadRequest,
+		})
+	}
+
+	// Валидация
+	if err := response.ValidateStruct(req); err != nil {
+		return response.Resp(ctx, response.Response{
+			Messages: response.Messages{err.Error()},
+			Code:     fiber.StatusBadRequest,
+		})
+	}
+
+	// Получаем ID организации из JWT
+	user := ctx.Locals("user").(jwt.JWTData)
+
+	// Изменяем порядок
+	questions, err := c.questionService.ReorderQuestions(req, user.CompanyID)
+	if err != nil {
+		return response.Resp(ctx, response.Response{
+			Messages: response.Messages{err.Error()},
+			Code:     fiber.StatusBadRequest,
+		})
+	}
+
+	return response.Resp(ctx, response.Response{
+		Data:     questions,
+		Messages: response.Messages{"Questions reordered successfully"},
 		Code:     fiber.StatusOK,
 	})
 }

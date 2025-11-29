@@ -33,6 +33,9 @@ func (r *QuestionRouter) RegisterQuestionRoutes(auth fiber.Handler) {
 		router.Get("/", auth, questionController.GetAll)
 		router.Get("/language/:code", auth, questionController.GetByLanguage)
 		router.Post("/", auth, questionController.Create)
+		// PUT /questions/reorder должен быть выше, чем PUT /questions/:id
+		// чтобы "reorder" не интерпретировался как :id
+		router.Put("/reorder", auth, questionController.Reorder)
 		router.Put("/:id", auth, questionController.Update)
 		router.Delete("/:id", auth, questionController.Delete)
 	})

@@ -707,12 +707,21 @@ POST /chat/table/session/close/:sessionId
 
 **API:**
 ```
-GET /questions
-GET /questions/language/:code
-POST /questions
-PUT /questions/:id
-DELETE /questions/:id
+GET /questions                 # Получить вопросы (отсортированы по display_order)
+GET /questions/language/:code  # Фильтрация по языку
+POST /questions                # Создать вопрос (поддержка displayOrder)
+PUT /questions/reorder         # Пакетное изменение порядка отображения
+PUT /questions/:id             # Обновить вопрос (поддержка displayOrder)
+DELETE /questions/:id          # Удалить вопрос
 ```
+
+**Формат запроса PUT /questions/reorder:**
+```json
+{
+  "questionIds": [3, 1, 2]  // ID вопросов в желаемом порядке
+}
+```
+Первый элемент получит display_order = 0, второй = 1 и т.д.
 
 ---
 

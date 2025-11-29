@@ -20,6 +20,7 @@ const (
 
 // Question представляет вопрос для быстрой отправки в чат-бот.
 // Вопросы группируются по организации, языку и типу чата.
+// DisplayOrder определяет порядок отображения вопросов для посетителей.
 type Question struct {
 	gorm.Model
 	OrganizationID uint         `gorm:"column:organization_id;not null" json:"organization_id"`
@@ -28,4 +29,7 @@ type Question struct {
 	LanguageID     *uint        `gorm:"column:language_id" json:"language_id"`
 	Language       *Language    `gorm:"foreignKey:LanguageID" json:"language"`
 	ChatType       ChatType     `gorm:"column:chat_type;type:varchar(20);default:'menu'" json:"chat_type"`
+	// DisplayOrder — порядок отображения вопроса (меньше = выше в списке).
+	// По умолчанию 0, сортировка по возрастанию.
+	DisplayOrder int `gorm:"column:display_order;default:0" json:"display_order"`
 }

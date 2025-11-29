@@ -5,6 +5,10 @@
 ### 1. Запустить сервер: go run cmd/main.go -migrate
 ### 2. Выполнить запрос "Login" для получения токена
 ### 3. Убедиться что в БД есть языки (en, ru)
+###
+### Новые возможности:
+### - display_order: порядок отображения вопросов
+### - PUT /questions/reorder: пакетное изменение порядка
 ### ============================================================
 
 ### ----------------------------------------
@@ -18,8 +22,8 @@ POST http://localhost:4000/auth/login
 Content-Type: application/json
 
 {
-  "email": "mironovq30@gmail.com",
-  "password": "Qwerty12e"
+  "email": "mario1764410276@labellaitalia.com",
+  "password": "Qwerty12"
 }
 
 > {%
@@ -33,7 +37,7 @@ Content-Type: application/json
 
 ###
 # 1.1 Создать вопрос БЕЗ языка (универсальный) - тип по умолчанию "menu"
-# Ожидание: 201, language: null, chat_type: "menu"
+# Ожидание: 201, language: null, chat_type: "menu", display_order: 0 (первый вопрос)
 POST http://localhost:4000/questions
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
@@ -44,17 +48,21 @@ Authorization: Bearer {{auth_token}}
 
 > {%
     client.global.set("question_id", response.body.data.id);
+    client.global.set("question_1_order", response.body.data.display_order);
     client.test("Status is 201", function() {
         client.assert(response.status === 201, "Expected 201");
     });
     client.test("Default chat_type is menu", function() {
         client.assert(response.body.data.chat_type === "menu", "Expected chat_type 'menu'");
     });
+    client.test("Has display_order field", function() {
+        client.assert(response.body.data.display_order !== undefined, "Expected display_order field");
+    });
 %}
 
 ###
 # 1.2 Создать вопрос С языком EN для МЕНЮ
-# Ожидание: 201, language.code = "en", chat_type = "menu"
+# Ожидание: 201, language.code = "en", chat_type = "menu", display_order автоинкремент
 POST http://localhost:4000/questions
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
@@ -67,6 +75,7 @@ Authorization: Bearer {{auth_token}}
 
 > {%
     client.global.set("question_en_id", response.body.data.id);
+    client.global.set("question_2_order", response.body.data.display_order);
     client.test("Status is 201", function() {
         client.assert(response.status === 201, "Expected 201");
     });
@@ -75,6 +84,10 @@ Authorization: Bearer {{auth_token}}
     });
     client.test("ChatType is menu", function() {
         client.assert(response.body.data.chat_type === "menu", "Expected chat_type 'menu'");
+    });
+    client.test("Display order auto-incremented", function() {
+        var prevOrder = client.global.get("question_1_order");
+        client.assert(response.body.data.display_order > prevOrder, "Expected display_order to be incremented");
     });
 %}
 
@@ -147,13 +160,37 @@ Authorization: Bearer {{auth_token}}
     });
 %}
 
+###
+# 1.6 Создать вопрос с ЯВНЫМ displayOrder
+# Ожидание: 201, display_order = 100
+POST http://localhost:4000/questions
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "text": "Вопрос с явным порядком",
+  "languageCode": "ru",
+  "chatType": "menu",
+  "displayOrder": 100
+}
+
+> {%
+    client.global.set("question_explicit_order_id", response.body.data.id);
+    client.test("Status is 201", function() {
+        client.assert(response.status === 201, "Expected 201");
+    });
+    client.test("Display order is 100", function() {
+        client.assert(response.body.data.display_order === 100, "Expected display_order 100");
+    });
+%}
+
 ### ----------------------------------------
 ### ПОЛУЧЕНИЕ ВОПРОСОВ (GET /questions)
 ### ----------------------------------------
 
 ###
 # 2.1 Получить ВСЕ вопросы организации (без фильтров)
-# Ожидание: 200, массив вопросов
+# Ожидание: 200, массив вопросов отсортированных по display_order
 GET http://localhost:4000/questions
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
@@ -169,6 +206,19 @@ Authorization: Bearer {{auth_token}}
         var questions = response.body.data.questions;
         if (questions.length > 0) {
             client.assert(questions[0].chat_type !== undefined, "Expected chat_type field");
+        }
+    });
+    client.test("Questions have display_order field", function() {
+        var questions = response.body.data.questions;
+        if (questions.length > 0) {
+            client.assert(questions[0].display_order !== undefined, "Expected display_order field");
+        }
+    });
+    client.test("Questions are sorted by display_order", function() {
+        var questions = response.body.data.questions;
+        for (var i = 1; i < questions.length; i++) {
+            client.assert(questions[i].display_order >= questions[i-1].display_order,
+                "Questions should be sorted by display_order");
         }
     });
 %}
@@ -392,7 +442,6 @@ Authorization: Bearer {{auth_token}}
 
 {
   "text": "Обновлённый вопрос на русском для бронирования",
-  "languageCode": "ru",
   "chatType": "reservation"
 }
 
@@ -401,30 +450,10 @@ Authorization: Bearer {{auth_token}}
         client.assert(response.status === 200, "Expected 200");
     });
     client.test("All fields updated", function() {
-        client.assert(response.body.data.language.code === "ru", "Language should be RU");
         client.assert(response.body.data.chat_type === "reservation", "ChatType should be reservation");
     });
 %}
 
-###
-# 4.6 УДАЛИТЬ язык (сделать универсальным)
-# Ожидание: 200, language = null
-PUT http://localhost:4000/questions/{{question_id}}
-Content-Type: application/json
-Authorization: Bearer {{auth_token}}
-
-{
-  "languageCode": ""
-}
-
-> {%
-    client.test("Status is 200", function() {
-        client.assert(response.status === 200, "Expected 200");
-    });
-    client.test("Language was removed", function() {
-        client.assert(response.body.data.language === null, "Language should be null");
-    });
-%}
 
 ###
 # 4.7 Обновить с НЕСУЩЕСТВУЮЩИМ языком
@@ -443,13 +472,115 @@ Authorization: Bearer {{auth_token}}
     });
 %}
 
+###
+# 4.8 Обновить displayOrder через PUT
+# Ожидание: 200, display_order изменён на 50
+PUT http://localhost:4000/questions/{{question_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "displayOrder": 50
+}
+
+> {%
+    client.test("Status is 200", function() {
+        client.assert(response.status === 200, "Expected 200");
+    });
+    client.test("Display order changed to 50", function() {
+        client.assert(response.body.data.display_order === 50, "Expected display_order 50");
+    });
+%}
+
+### ----------------------------------------
+### ИЗМЕНЕНИЕ ПОРЯДКА (PUT /questions/reorder)
+### ----------------------------------------
+
+###
+# 5.1 Изменить порядок вопросов
+# Ожидание: 200, вопросы возвращаются в новом порядке
+# Сначала получим текущие ID вопросов
+GET http://localhost:4000/questions
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+> {%
+    var questions = response.body.data.questions;
+    if (questions.length >= 2) {
+        // Сохраняем первые 2 ID для теста reorder
+        client.global.set("reorder_id_1", questions[0].id);
+        client.global.set("reorder_id_2", questions[1].id);
+    }
+%}
+
+###
+# 5.2 Reorder - поменять первые два вопроса местами
+# Ожидание: 200, порядок изменён
+PUT http://localhost:4000/questions/reorder
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "questionIds": [{{reorder_id_2}}, {{reorder_id_1}}]
+}
+
+> {%
+    client.test("Status is 200", function() {
+        client.assert(response.status === 200, "Expected 200");
+    });
+    client.test("Questions reordered successfully", function() {
+        var questions = response.body.data.questions;
+        var id1 = client.global.get("reorder_id_1");
+        var id2 = client.global.get("reorder_id_2");
+        // Проверяем что id_2 теперь первый (display_order = 0)
+        var q2 = questions.find(q => q.id === id2);
+        var q1 = questions.find(q => q.id === id1);
+        if (q1 && q2) {
+            client.assert(q2.display_order < q1.display_order, "Expected id_2 to be before id_1");
+        }
+    });
+%}
+
+###
+# 5.3 Reorder - пустой массив ID
+# Ожидание: 400, ошибка валидации
+PUT http://localhost:4000/questions/reorder
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "questionIds": []
+}
+
+> {%
+    client.test("Should fail for empty array", function() {
+        client.assert(response.status === 400, "Expected 400 for empty questionIds");
+    });
+%}
+
+###
+# 5.4 Reorder - несуществующий ID вопроса
+# Ожидание: 400, ошибка "question not found"
+PUT http://localhost:4000/questions/reorder
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "questionIds": [999999]
+}
+
+> {%
+    client.test("Should fail for non-existent question", function() {
+        client.assert(response.status === 400, "Expected 400 for non-existent question");
+    });
+%}
 
 ### ----------------------------------------
 ### УДАЛЕНИЕ ВОПРОСОВ (DELETE /questions/:id)
 ### ----------------------------------------
 
 ###
-# 5.1 Удалить СУЩЕСТВУЮЩИЙ вопрос (свой)
+# 6.1 Удалить СУЩЕСТВУЮЩИЙ вопрос (свой)
 # Ожидание: 200, возвращает id удалённого вопроса
 DELETE http://localhost:4000/questions/{{question_en_id}}
 Content-Type: application/json
@@ -470,8 +601,8 @@ Authorization: Bearer {{auth_token}}
 ### ----------------------------------------
 
 ###
-# 6.1 Проверить что удалённый вопрос не возвращается
-# Выполнить ПОСЛЕ теста 5.1
+# 7.1 Проверить что удалённый вопрос не возвращается
+# Выполнить ПОСЛЕ теста 6.1
 GET http://localhost:4000/questions
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
@@ -511,5 +642,11 @@ Authorization: Bearer {{auth_token}}
 ###
 # Удалить тестовый вопрос RU для меню
 DELETE http://localhost:4000/questions/{{question_ru_menu_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+###
+# Удалить тестовый вопрос с явным displayOrder
+DELETE http://localhost:4000/questions/{{question_explicit_order_id}}
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}

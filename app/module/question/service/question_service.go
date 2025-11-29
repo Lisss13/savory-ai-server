@@ -30,6 +30,9 @@ type QuestionService interface {
 	Create(req *payload.CreateQuestionReq, organizationID uint) (*payload.QuestionResp, error)
 	Update(id uint, req *payload.UpdateQuestionReq, organizationID uint) (*payload.QuestionResp, error)
 	Delete(id uint, organizationID uint) error
+	// ReorderQuestions изменяет порядок отображения вопросов.
+	// Принимает массив ID вопросов в желаемом порядке.
+	ReorderQuestions(req *payload.ReorderQuestionsReq, organizationID uint) (*payload.QuestionsResp, error)
 }
 
 // NewQuestionService создаёт новый экземпляр сервиса вопросов.
@@ -176,11 +179,13 @@ func (s *questionService) GetByFilters(organizationID uint, languageCode string,
 // - Вопрос автоматически привязывается к организации текущего пользователя
 // - Если указан languageCode — вопрос привязывается к языку
 // - Если languageCode не указан — вопрос создаётся без языка (универсальный)
+// - Если displayOrder не указан — вопрос добавляется в конец списка
 // - Возвращает ошибку если указанный язык не существует в системе
 //
 // Параметры:
 // - req.Text: текст вопроса (обязательный)
 // - req.LanguageCode: код языка, например "en", "ru" (опциональный)
+// - req.DisplayOrder: порядок отображения (опциональный)
 // - organizationID: ID организации из JWT токена
 //
 // Пример:
@@ -193,10 +198,24 @@ func (s *questionService) Create(req *payload.CreateQuestionReq, organizationID 
 		chatType = storage.ChatTypeReservation
 	}
 
+	// Определяем порядок отображения
+	displayOrder := 0
+	if req.DisplayOrder != nil {
+		displayOrder = *req.DisplayOrder
+	} else {
+		// Если не указан — ставим в конец списка
+		maxOrder, err := s.questionRepo.GetMaxDisplayOrder(organizationID)
+		if err != nil {
+			return nil, err
+		}
+		displayOrder = maxOrder + 1
+	}
+
 	question := &storage.Question{
 		Text:           req.Text,
 		OrganizationID: organizationID,
 		ChatType:       chatType,
+		DisplayOrder:   displayOrder,
 	}
 
 	// Если указан код языка — находим язык и привязываем к вопросу
@@ -283,6 +302,11 @@ func (s *questionService) Update(id uint, req *payload.UpdateQuestionReq, organi
 		}
 	}
 
+	// Обновляем порядок отображения если передан
+	if req.DisplayOrder != nil {
+		question.DisplayOrder = *req.DisplayOrder
+	}
+
 	// Сохраняем изменения
 	updatedQuestion, err := s.questionRepo.Update(question)
 	if err != nil {
@@ -331,17 +355,18 @@ func (s *questionService) Delete(id uint, organizationID uint) error {
 // mapQuestionToResponse преобразует модель Question в DTO для ответа API.
 //
 // Преобразование:
-// - Копирует базовые поля: ID, CreatedAt, Text, ChatType
+// - Копирует базовые поля: ID, CreatedAt, Text, ChatType, DisplayOrder
 // - Если к вопросу привязан язык — добавляет информацию о языке
 // - Если язык не привязан — поле Language будет nil в JSON (omitempty)
 //
 // Это позволяет не раскрывать внутреннюю структуру БД клиентам API.
 func mapQuestionToResponse(question *storage.Question) payload.QuestionResp {
 	resp := payload.QuestionResp{
-		ID:        question.ID,
-		CreatedAt: question.CreatedAt,
-		Text:      question.Text,
-		ChatType:  string(question.ChatType),
+		ID:           question.ID,
+		CreatedAt:    question.CreatedAt,
+		Text:         question.Text,
+		ChatType:     string(question.ChatType),
+		DisplayOrder: question.DisplayOrder,
 	}
 
 	// Добавляем информацию о языке, если она есть
@@ -354,4 +379,43 @@ func mapQuestionToResponse(question *storage.Question) payload.QuestionResp {
 	}
 
 	return resp
+}
+
+// ReorderQuestions изменяет порядок отображения вопросов.
+//
+// Бизнес-логика:
+// - Принимает массив ID вопросов в желаемом порядке
+// - Первый элемент получает display_order = 0, второй = 1 и т.д.
+// - Проверяет, что все вопросы принадлежат организации пользователя
+// - Возвращает обновлённый список вопросов
+//
+// Параметры:
+// - req.QuestionIDs: массив ID вопросов в желаемом порядке
+// - organizationID: ID организации из JWT для проверки прав
+//
+// Ошибки:
+// - "question not found" — один из вопросов не существует
+// - "question does not belong to your organization" — вопрос принадлежит другой организации
+func (s *questionService) ReorderQuestions(req *payload.ReorderQuestionsReq, organizationID uint) (*payload.QuestionsResp, error) {
+	// Проверяем все вопросы и обновляем их порядок
+	for i, questionID := range req.QuestionIDs {
+		// Находим вопрос
+		question, err := s.questionRepo.FindByID(questionID)
+		if err != nil {
+			return nil, errors.New("question not found")
+		}
+
+		// Проверяем принадлежность к организации
+		if question.OrganizationID != organizationID {
+			return nil, errors.New("question does not belong to your organization")
+		}
+
+		// Обновляем порядок
+		if err := s.questionRepo.UpdateDisplayOrder(questionID, i); err != nil {
+			return nil, err
+		}
+	}
+
+	// Возвращаем обновлённый список вопросов
+	return s.GetByOrganizationID(organizationID)
 }

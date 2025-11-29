@@ -197,7 +197,7 @@ Authorization: Bearer {{token}}
     }
 %}
 
-### 4.1 Создать ресторан
+### 4.1.1 Создать ресторан
 POST {{baseUrl}}/restaurants
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -207,9 +207,9 @@ Content-Type: application/json
   "name": "La Bella Italia - Centro",
   "address": "Via Roma, 15, 00184 Roma RM, Italy",
   "phone": "+39 06 1234567",
-  "website": "https://labellaitalia.com",
+  "website": "https://meetpay.com",
   "description": "Аутентичный итальянский ресторан",
-  "image_url": "https://example.com/restaurant.jpg",
+  "image_url": "https://plus.unsplash.com/premium_photo-1661883237884-263e8de8869b?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cmVzdGF1cmFudHxlbnwwfHwwfHx8MA%3D%3D",
   "reservation_duration": 90,
   "working_hours": [
     {"day_of_week": 0, "open_time": "12:00", "close_time": "23:00"},
@@ -230,6 +230,37 @@ Content-Type: application/json
     if (response.body.data && response.body.data.id) {
         client.global.set("restaurant_id", response.body.data.id);
     }
+%}
+
+### 4.1.2 Создать ресторан
+POST {{baseUrl}}/restaurants
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "organization_id": {{organization_id}},
+  "name": "MeetPay",
+  "address": "17 Icon Bay Ave, Miami, FL 33132, USA",
+  "phone": "+39 06 1234567",
+  "website": "https://meetpay.com",
+  "description": "Ресторан французской кухни",
+  "image_url": "https://plus.unsplash.com/premium_photo-1661883237884-263e8de8869b?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cmVzdGF1cmFudHxlbnwwfHwwfHx8MA%3D%3D",
+  "reservation_duration": 90,
+  "working_hours": [
+    {"day_of_week": 0, "open_time": "12:00", "close_time": "23:00"},
+    {"day_of_week": 1, "open_time": "12:00", "close_time": "23:00"},
+    {"day_of_week": 2, "open_time": "12:00", "close_time": "23:00"},
+    {"day_of_week": 3, "open_time": "12:00", "close_time": "23:00"},
+    {"day_of_week": 4, "open_time": "12:00", "close_time": "23:30"},
+    {"day_of_week": 5, "open_time": "12:00", "close_time": "00:00"},
+    {"day_of_week": 6, "open_time": "12:00", "close_time": "00:00"}
+  ]
+}
+
+> {%
+    client.test("Create restaurant successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
 %}
 
 ### 4.2 Получить все рестораны
@@ -1449,6 +1480,7 @@ Authorization: Bearer {{token}}
 
 ### 15.1 Получить QR-код ресторана
 GET {{baseUrl}}/qrcodes/restaurant/{{restaurant_id}}
+Authorization: Bearer {{token}}
 
 > {%
     client.test("Get restaurant QR code", function() {
@@ -1458,6 +1490,7 @@ GET {{baseUrl}}/qrcodes/restaurant/{{restaurant_id}}
 
 ### 15.2 Получить QR-код столика
 GET {{baseUrl}}/qrcodes/restaurant/{{restaurant_id}}/table/{{table_id}}
+Authorization: Bearer {{token}}
 
 > {%
     client.test("Get table QR code", function() {
@@ -1816,5 +1849,324 @@ Content-Type: application/json
 > {%
     client.test("Create ticket with invalid email returns error", function() {
         client.assert(response.status === 400 || response.status === 422, "Expected validation error");
+    });
+%}
+
+### 23.1 Установить дату следующего дня
+GET {{baseUrl}}/ping
+
+> {%
+    // Вычисляем дату следующего дня в формате YYYY-MM-DD
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const year = tomorrow.getFullYear();
+    const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+    const day = String(tomorrow.getDate()).padStart(2, '0');
+    const tomorrowDate = `${year}-${month}-${day}`;
+
+    client.global.set("tomorrow_date", tomorrowDate);
+
+    client.test("Tomorrow date calculated", function() {
+        client.assert(tomorrowDate.length === 10, "Date format is YYYY-MM-DD");
+    });
+%}
+
+### 23.2 Получить доступные слоты на следующий день (2 гостя)
+GET {{baseUrl}}/reservations/available/{{restaurant_id}}?date={{tomorrow_date}}&guest_count=2
+
+> {%
+    client.test("Get available slots for tomorrow successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+
+    // Сохраняем первый доступный слот если есть
+    if (response.body.data && response.body.data.slots && response.body.data.slots.length > 0) {
+        client.global.set("available_slot_time", response.body.data.slots[0].time);
+        client.global.set("available_table_id", response.body.data.slots[0].table_id);
+    }
+%}
+
+### 23.3 Получить доступные слоты на следующий день (4 гостя)
+GET {{baseUrl}}/reservations/available/{{restaurant_id}}?date={{tomorrow_date}}&guest_count=4
+
+> {%
+    client.test("Get available slots for 4 guests successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+
+    if (response.body.data && response.body.data.slots && response.body.data.slots.length > 0) {
+        client.global.set("available_slot_time_4", response.body.data.slots[0].time);
+        client.global.set("available_table_id_4", response.body.data.slots[0].table_id);
+    }
+%}
+
+### 23.4 Создать бронирование на следующий день (2 гостя, 18:00)
+POST {{baseUrl}}/reservations
+Content-Type: application/json
+
+{
+  "restaurant_id": {{restaurant_id}},
+  "table_id": {{table_id_1}},
+  "customer_name": "Алексей Смирнов",
+  "customer_phone": "+79101234567",
+  "customer_email": "alexey@example.com",
+  "guest_count": 2,
+  "reservation_date": "{{tomorrow_date}}",
+  "start_time": "18:00",
+  "notes": "Романтический ужин, желательно у окна"
+}
+
+> {%
+    client.test("Create reservation for tomorrow successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+
+    if (response.body.data && response.body.data.id) {
+        client.global.set("reservation_tomorrow_id", response.body.data.id);
+    }
+%}
+
+### 23.5 Создать бронирование на следующий день (4 гостя, 19:30)
+POST {{baseUrl}}/reservations
+Content-Type: application/json
+
+{
+  "restaurant_id": {{restaurant_id}},
+  "table_id": {{table_id_2}},
+  "customer_name": "Семья Ивановых",
+  "customer_phone": "+79201234567",
+  "customer_email": "ivanov.family@example.com",
+  "guest_count": 4,
+  "reservation_date": "{{tomorrow_date}}",
+  "start_time": "19:30",
+  "notes": "День рождения ребенка, нужен детский стул"
+}
+
+> {%
+    client.test("Create reservation for 4 guests successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+
+    if (response.body.data && response.body.data.id) {
+        client.global.set("reservation_family_id", response.body.data.id);
+    }
+%}
+
+### 23.6 Создать бронирование на VIP столик (6 гостей, 20:00)
+POST {{baseUrl}}/reservations
+Content-Type: application/json
+
+{
+  "restaurant_id": {{restaurant_id}},
+  "table_id": {{table_id_3}},
+  "customer_name": "Корпоратив ООО Рога и Копыта",
+  "customer_phone": "+79301234567",
+  "customer_email": "corp@rogaikopyta.ru",
+  "guest_count": 6,
+  "reservation_date": "{{tomorrow_date}}",
+  "start_time": "20:00",
+  "notes": "Корпоративный ужин, заказать шампанское к приходу"
+}
+
+> {%
+    client.test("Create VIP reservation successful", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+
+    if (response.body.data && response.body.data.id) {
+        client.global.set("reservation_vip_id", response.body.data.id);
+    }
+%}
+
+### 23.7 Попытка создать бронирование на занятый столик (конфликт)
+POST {{baseUrl}}/reservations
+Content-Type: application/json
+
+{
+  "restaurant_id": {{restaurant_id}},
+  "table_id": {{table_id_1}},
+  "customer_name": "Тест Конфликта",
+  "customer_phone": "+79401234567",
+  "customer_email": "conflict@test.com",
+  "guest_count": 2,
+  "reservation_date": "{{tomorrow_date}}",
+  "start_time": "18:00",
+  "notes": "Этот столик уже забронирован"
+}
+
+> {%
+    client.test("Conflicting reservation returns error", function() {
+        client.assert(response.status === 400 || response.status === 409 || response.status === 422,
+            "Expected conflict error");
+    });
+%}
+
+### 23.8 Получить бронирования по телефону (проверка созданных)
+GET {{baseUrl}}/reservations/my?phone=%2B79101234567
+
+> {%
+    client.test("Get reservations by phone successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+
+    client.test("Reservation exists for this phone", function() {
+        const hasReservations = response.body.data &&
+            (Array.isArray(response.body.data) ? response.body.data.length > 0 :
+             response.body.data.reservations && response.body.data.reservations.length > 0);
+        client.assert(hasReservations, "Expected at least one reservation");
+    });
+%}
+
+### 23.9 Получить бронирования ресторана на следующий день
+GET {{baseUrl}}/reservations/restaurant/{{restaurant_id}}?date={{tomorrow_date}}
+Authorization: Bearer {{token}}
+
+> {%
+    client.test("Get restaurant reservations for tomorrow successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+%}
+
+### 23.10 Подтвердить бронирование
+PATCH {{baseUrl}}/reservations/{{reservation_tomorrow_id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "confirmed"
+}
+
+> {%
+    client.test("Confirm reservation successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+%}
+
+### 23.11 Обновить количество гостей в бронировании
+PATCH {{baseUrl}}/reservations/{{reservation_family_id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "guest_count": 5,
+  "notes": "Добавился ещё один гость"
+}
+
+> {%
+    client.test("Update reservation guest count successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+%}
+
+### 23.12 Получить конкретное бронирование по ID
+GET {{baseUrl}}/reservations/{{reservation_tomorrow_id}}
+Authorization: Bearer {{token}}
+
+> {%
+    client.test("Get reservation by ID successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+
+    client.test("Reservation status is confirmed", function() {
+        const status = response.body.data && response.body.data.status;
+        client.assert(status === "confirmed", "Expected status confirmed");
+    });
+%}
+
+#### 23.13 Отменить бронирование (публичный endpoint)
+#POST {{baseUrl}}/reservations/{{reservation_vip_id}}/cancel/public
+#Content-Type: application/json
+#
+#{
+#  "phone": "+79301234567"
+#}
+#
+#> {%
+#    client.test("Cancel reservation successful", function() {
+#        client.assert(response.status === 200, "Expected status 200");
+#    });
+#%}
+
+### 23.14 Проверить что VIP столик снова доступен
+GET {{baseUrl}}/reservations/available/{{restaurant_id}}?date={{tomorrow_date}}&guest_count=6
+
+> {%
+    client.test("VIP table is available again", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+%}
+
+### 23.15 Попытка бронирования без обязательных полей
+POST {{baseUrl}}/reservations
+Content-Type: application/json
+
+{
+  "restaurant_id": {{restaurant_id}},
+  "guest_count": 2
+}
+
+> {%
+    client.test("Reservation without required fields returns error", function() {
+        client.assert(response.status === 400 || response.status === 422, "Expected validation error");
+    });
+%}
+
+### 23.16 Попытка бронирования с невалидным телефоном
+POST {{baseUrl}}/reservations
+Content-Type: application/json
+
+{
+  "restaurant_id": {{restaurant_id}},
+  "table_id": {{table_id_1}},
+  "customer_name": "Тест",
+  "customer_phone": "invalid-phone",
+  "guest_count": 2,
+  "reservation_date": "{{tomorrow_date}}",
+  "start_time": "21:00"
+}
+
+> {%
+    client.test("Reservation with invalid phone returns error", function() {
+        client.assert(response.status === 400 || response.status === 422, "Expected validation error");
+    });
+%}
+
+### 23.17 Попытка бронирования на прошедшую дату
+POST {{baseUrl}}/reservations
+Content-Type: application/json
+
+{
+  "restaurant_id": {{restaurant_id}},
+  "table_id": {{table_id_1}},
+  "customer_name": "Тест Прошлое",
+  "customer_phone": "+79501234567",
+  "guest_count": 2,
+  "reservation_date": "2020-01-01",
+  "start_time": "18:00"
+}
+
+> {%
+    client.test("Reservation for past date returns error", function() {
+        client.assert(response.status === 400 || response.status === 422, "Expected validation error");
+    });
+%}
+
+### 23.18 Попытка бронирования вне рабочих часов
+POST {{baseUrl}}/reservations
+Content-Type: application/json
+
+{
+  "restaurant_id": {{restaurant_id}},
+  "table_id": {{table_id_1}},
+  "customer_name": "Тест Ночь",
+  "customer_phone": "+79601234567",
+  "guest_count": 2,
+  "reservation_date": "{{tomorrow_date}}",
+  "start_time": "03:00"
+}
+
+> {%
+    client.test("Reservation outside working hours returns error", function() {
+        client.assert(response.status === 400 || response.status === 422, "Expected error for closed hours");
     });
 %}

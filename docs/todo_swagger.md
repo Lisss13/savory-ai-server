@@ -91,10 +91,11 @@
 ### Question Module
 | Код | Swagger | Статус | Примечание |
 |-----|---------|--------|------------|
-| `GET /questions` | `/questions` | ✅ OK | auth |
+| `GET /questions` | `/questions` | ✅ OK | auth, возвращает display_order |
 | `GET /questions/language/:code` | `/questions/language/{code}` | ✅ OK | auth |
-| `POST /questions` | `/questions` | ✅ OK | auth |
-| `PUT /questions/:id` | `/questions/{id}` | ✅ OK | auth |
+| `POST /questions` | `/questions` | ✅ OK | auth, поддержка displayOrder |
+| `PUT /questions/:id` | `/questions/{id}` | ✅ OK | auth, поддержка displayOrder |
+| `PUT /questions/reorder` | `/questions/reorder` | ✅ OK | auth, пакетное изменение порядка |
 | `DELETE /questions/:id` | `/questions/{id}` | ✅ OK | auth |
 
 ### QR Code Module
