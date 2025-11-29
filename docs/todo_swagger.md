@@ -71,10 +71,12 @@
 ### Menu Category Module
 | Код | Swagger | Статус | Примечание |
 |-----|---------|--------|------------|
-| `GET /categories/restaurant/:restaurant_id` | `/categories/restaurant/{restaurant_id}` | ✅ OK | Публичный |
+| `GET /categories/restaurant/:restaurant_id` | `/categories/restaurant/{restaurant_id}` | ✅ OK | Публичный, возвращает sort_order |
 | `GET /categories/:id` | `/categories/{id}` | ✅ OK | Публичный |
-| `POST /categories` | `/categories` | ✅ OK | auth |
+| `POST /categories` | `/categories` | ✅ OK | auth, поддержка sort_order |
+| `PATCH /categories/:id` | `/categories/{id}` | ✅ OK | auth, обновление name/sort_order |
 | `DELETE /categories/:id` | `/categories/{id}` | ✅ OK | auth |
+| `PUT /categories/sort-order` | `/categories/sort-order` | ✅ OK | auth, массовое обновление порядка |
 
 ### Dish Module
 | Код | Swagger | Статус | Примечание |
@@ -224,8 +226,11 @@
 - [ ] `UpdateTableRequest` - соответствует payload/request.go
 
 ### Menu Category
-- [ ] `MenuCategoryResponse` - проверить наличие `restaurantId`
-- [ ] `CreateMenuCategoryRequest` - проверить наличие `restaurant_id`
+- [x] `MenuCategoryResponse` - проверено, добавлен `sort_order`
+- [x] `CreateMenuCategoryRequest` - проверено, добавлен опциональный `sort_order`
+- [x] `UpdateMenuCategoryRequest` - добавлена новая схема
+- [x] `CategorySortOrderItem` - добавлена новая схема
+- [x] `UpdateCategoriesSortOrderRequest` - добавлена новая схема
 
 ### Dish
 - [ ] `DishResponse` - проверить `restaurant` вместо `organization`

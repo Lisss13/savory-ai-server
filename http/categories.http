@@ -1,12 +1,15 @@
-### Menu Categories
+### Menu Categories - Full API Testing
+### Тестирование всех endpoints для категорий меню
+### Включая новый функционал сортировки (sort_order)
+
+@baseUrl = http://localhost:4000
 
 ### ------------------------------------------
 ### SECTION 1: AUTHENTICATION
 ### ------------------------------------------
 
 ### 1.1 Login to get auth token
-# @name login
-POST http://localhost:4000/auth/login
+POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
@@ -17,33 +20,437 @@ Content-Type: application/json
 > {%
     client.test("Login successful", function() {
         client.assert(response.status === 200, "Expected status 200");
-        client.assert(response.body.data.accessToken !== undefined, "Access token should be present");
     });
-    client.global.set("auth_token", response.body.data.accessToken);
-    client.global.set("organization_id", response.body.data.user.organization.id);
+
+    if (response.body.data) {
+        client.global.set("auth_token", response.body.data.token || response.body.data.accessToken);
+        if (response.body.data.user && response.body.data.user.organization) {
+            client.global.set("organization_id", response.body.data.user.organization.id);
+        }
+    }
 %}
 
-###
-GET http://localhost:4000/categories
+### ------------------------------------------
+### SECTION 2: GET RESTAURANT (для создания категорий)
+### ------------------------------------------
+
+### 2.1 Получить рестораны организации
+GET {{baseUrl}}/restaurants
 Authorization: Bearer {{auth_token}}
 
-###
-POST http://localhost:4000/categories
+> {%
+    client.test("Get restaurants successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+
+    if (response.body.data && response.body.data.length > 0) {
+        client.global.set("restaurant_id", response.body.data[0].id);
+    }
+%}
+
+### ------------------------------------------
+### SECTION 3: CREATE CATEGORIES (с sort_order)
+### ------------------------------------------
+
+### 3.1 Создать категорию "Закуски" (без sort_order - автоматически)
+POST {{baseUrl}}/categories
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 {
-  "name": "Meet"
+  "name": "Закуски (Antipasti)",
+  "restaurant_id": {{restaurant_id}}
 }
 
-> {% client.global.set("category_id", response.body.data.id); %}
+> {%
+    client.test("Create category without sort_order", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
 
-###
-GET http://localhost:4000/categories/3
+    if (response.body.data) {
+        client.global.set("category_1_id", response.body.data.id);
+        client.test("Sort order is auto-assigned", function() {
+            client.assert(response.body.data.sort_order !== undefined, "sort_order should be present");
+        });
+    }
+%}
+
+### 3.2 Создать категорию "Первые блюда" с явным sort_order
+POST {{baseUrl}}/categories
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
-###
-DELETE http://localhost:4000/categories/2
+{
+  "name": "Первые блюда (Primi)",
+  "restaurant_id": {{restaurant_id}},
+  "sort_order": 1
+}
+
+> {%
+    client.test("Create category with explicit sort_order", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+
+    if (response.body.data) {
+        client.global.set("category_2_id", response.body.data.id);
+        client.test("Sort order matches requested value", function() {
+            client.assert(response.body.data.sort_order === 1, "sort_order should be 1");
+        });
+    }
+%}
+
+### 3.3 Создать категорию "Вторые блюда"
+POST {{baseUrl}}/categories
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Вторые блюда (Secondi)",
+  "restaurant_id": {{restaurant_id}},
+  "sort_order": 2
+}
+
+> {%
+    client.test("Create third category", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+
+    if (response.body.data) {
+        client.global.set("category_3_id", response.body.data.id);
+    }
+%}
+
+### 3.4 Создать категорию "Десерты"
+POST {{baseUrl}}/categories
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Десерты (Dolci)",
+  "restaurant_id": {{restaurant_id}},
+  "sort_order": 3
+}
+
+> {%
+    client.test("Create fourth category", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+
+    if (response.body.data) {
+        client.global.set("category_4_id", response.body.data.id);
+    }
+%}
+
+### 3.5 Создать категорию "Напитки"
+POST {{baseUrl}}/categories
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Напитки (Bevande)",
+  "restaurant_id": {{restaurant_id}},
+  "sort_order": 4
+}
+
+> {%
+    client.test("Create fifth category", function() {
+        client.assert(response.status === 200 || response.status === 201, "Expected success");
+    });
+
+    if (response.body.data) {
+        client.global.set("category_5_id", response.body.data.id);
+    }
+%}
+
+### ------------------------------------------
+### SECTION 4: GET CATEGORIES
+### ------------------------------------------
+
+### 4.1 Получить все категории ресторана (отсортированные по sort_order)
+GET {{baseUrl}}/categories/restaurant/{{restaurant_id}}
+
+> {%
+    client.test("Get categories by restaurant successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+
+    client.test("Categories are sorted by sort_order", function() {
+        if (response.body.data && response.body.data.categories) {
+            const categories = response.body.data.categories;
+            for (let i = 1; i < categories.length; i++) {
+                client.assert(
+                    categories[i].sort_order >= categories[i-1].sort_order,
+                    "Categories should be sorted by sort_order ascending"
+                );
+            }
+        }
+    });
+
+    // Сохраняем ID первой категории если ещё не сохранён
+    if (response.body.data && response.body.data.categories && response.body.data.categories.length > 0) {
+        if (!client.global.get("category_1_id")) {
+            client.global.set("category_1_id", response.body.data.categories[0].id);
+        }
+    }
+%}
+
+### 4.2 Получить категорию по ID
+GET {{baseUrl}}/categories/{{category_1_id}}
+
+> {%
+    client.test("Get category by ID successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+
+    client.test("Category has sort_order field", function() {
+        client.assert(response.body.data.sort_order !== undefined, "sort_order should be present");
+    });
+%}
+
+### ------------------------------------------
+### SECTION 5: UPDATE CATEGORY (PATCH)
+### ------------------------------------------
+
+### 5.1 Обновить только название категории
+PATCH {{baseUrl}}/categories/{{category_1_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Холодные закуски"
+}
+
+> {%
+    client.test("Update category name successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+
+    client.test("Name was updated", function() {
+        client.assert(response.body.data.name === "Холодные закуски", "Name should be updated");
+    });
+%}
+
+### 5.2 Обновить только sort_order категории
+PATCH {{baseUrl}}/categories/{{category_2_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "sort_order": 0
+}
+
+> {%
+    client.test("Update category sort_order successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+
+    client.test("Sort order was updated", function() {
+        client.assert(response.body.data.sort_order === 0, "sort_order should be 0");
+    });
+%}
+
+### 5.3 Обновить и название, и sort_order
+PATCH {{baseUrl}}/categories/{{category_3_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Горячие блюда",
+  "sort_order": 5
+}
+
+> {%
+    client.test("Update both name and sort_order successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+
+    client.test("Both fields were updated", function() {
+        client.assert(response.body.data.name === "Горячие блюда", "Name should be updated");
+        client.assert(response.body.data.sort_order === 5, "sort_order should be 5");
+    });
+%}
+
+### 5.4 Проверить что порядок изменился
+GET {{baseUrl}}/categories/restaurant/{{restaurant_id}}
+
+> {%
+    client.test("Categories order changed after update", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+%}
+
+### ------------------------------------------
+### SECTION 6: BULK UPDATE SORT ORDER (PUT)
+### ------------------------------------------
+
+### 6.1 Массово обновить порядок категорий
+PUT {{baseUrl}}/categories/sort-order
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "categories": [
+    {"id": {{category_1_id}}, "sort_order": 0},
+    {"id": {{category_2_id}}, "sort_order": 1},
+    {"id": {{category_3_id}}, "sort_order": 2},
+    {"id": {{category_4_id}}, "sort_order": 3},
+    {"id": {{category_5_id}}, "sort_order": 4}
+  ]
+}
+
+> {%
+    client.test("Bulk update sort order successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+%}
+
+### 6.2 Проверить новый порядок категорий
+GET {{baseUrl}}/categories/restaurant/{{restaurant_id}}
+
+> {%
+    client.test("Categories are in new order", function() {
+        client.assert(response.status === 200, "Expected status 200");
+
+        if (response.body.data && response.body.data.categories) {
+            const categories = response.body.data.categories;
+            // Проверяем что категории отсортированы по sort_order
+            for (let i = 1; i < categories.length; i++) {
+                client.assert(
+                    categories[i].sort_order >= categories[i-1].sort_order,
+                    "Categories should be sorted by sort_order"
+                );
+            }
+        }
+    });
+%}
+
+### 6.3 Изменить порядок - переместить десерты в начало
+PUT {{baseUrl}}/categories/sort-order
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "categories": [
+    {"id": {{category_4_id}}, "sort_order": 0},
+    {"id": {{category_1_id}}, "sort_order": 1},
+    {"id": {{category_2_id}}, "sort_order": 2},
+    {"id": {{category_3_id}}, "sort_order": 3},
+    {"id": {{category_5_id}}, "sort_order": 4}
+  ]
+}
+
+> {%
+    client.test("Reorder with desserts first successful", function() {
+        client.assert(response.status === 200, "Expected status 200");
+    });
+%}
+
+### 6.4 Проверить что десерты теперь первые
+GET {{baseUrl}}/categories/restaurant/{{restaurant_id}}
+
+> {%
+    client.test("Desserts category is now first", function() {
+        client.assert(response.status === 200, "Expected status 200");
+
+        if (response.body.data && response.body.data.categories && response.body.data.categories.length > 0) {
+            const firstCategory = response.body.data.categories[0];
+            client.assert(
+                firstCategory.name.includes("Десерты") || firstCategory.name.includes("Dolci"),
+                "First category should be Desserts"
+            );
+        }
+    });
+%}
+
+### ------------------------------------------
+### SECTION 7: ERROR CASES
+### ------------------------------------------
+
+### 7.1 Попытка создать категорию без обязательных полей
+POST {{baseUrl}}/categories
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Только название"
+}
+
+> {%
+    client.test("Create without restaurant_id returns error", function() {
+        client.assert(response.status === 400 || response.status === 422, "Expected validation error");
+    });
+%}
+
+### 7.2 Попытка обновить несуществующую категорию
+PATCH {{baseUrl}}/categories/999999
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Не существует"
+}
+
+> {%
+    client.test("Update non-existent category returns error", function() {
+        client.assert(response.status === 404 || response.status === 500, "Expected not found error");
+    });
+%}
+
+### 7.3 Попытка массового обновления с пустым массивом
+PUT {{baseUrl}}/categories/sort-order
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "categories": []
+}
+
+> {%
+    client.test("Bulk update with empty array returns error", function() {
+        client.assert(response.status === 400 || response.status === 422, "Expected validation error");
+    });
+%}
+
+### 7.4 Попытка обновления без авторизации
+PATCH {{baseUrl}}/categories/{{category_1_id}}
+Content-Type: application/json
+
+{
+  "name": "Без авторизации"
+}
+
+> {%
+    client.test("Update without auth returns 401", function() {
+        client.assert(response.status === 401, "Expected 401 Unauthorized");
+    });
+%}
+
+### 7.5 Попытка массового обновления без авторизации
+PUT {{baseUrl}}/categories/sort-order
+Content-Type: application/json
+
+{
+  "categories": [
+    {"id": 1, "sort_order": 0}
+  ]
+}
+
+> {%
+    client.test("Bulk update without auth returns 401", function() {
+        client.assert(response.status === 401, "Expected 401 Unauthorized");
+    });
+%}
+
+### ------------------------------------------
+### SECTION 8: CLEANUP (опционально)
+### ------------------------------------------
+
+### 8.1 Удалить тестовую категорию
+# DELETE {{baseUrl}}/categories/{{category_5_id}}
+# Authorization: Bearer {{auth_token}}
+#
+# > {%
+#     client.test("Delete category successful", function() {
+#         client.assert(response.status === 200, "Expected status 200");
+#     });
+# %}

@@ -28,16 +28,20 @@ var MenuCategoryModule = fx.Options(
 )
 
 // RegisterMenuCategoryRoutes регистрирует маршруты для категорий меню.
-// GET /categories/restaurant/:restaurant_id - получить категории ресторана
+// GET /categories/restaurant/:restaurant_id - получить категории ресторана (отсортированы по sort_order)
 // GET /categories/:id - получить категорию по ID
 // POST /categories - создать категорию (требует авторизации)
+// PATCH /categories/:id - обновить категорию (требует авторизации)
 // DELETE /categories/:id - удалить категорию (требует авторизации)
+// PUT /categories/sort-order - массово обновить порядок категорий (требует авторизации)
 func (r *MenuCategoryRouter) RegisterMenuCategoryRoutes(auth fiber.Handler) {
 	menuCategoryController := r.Controller.MenuCategory
 	r.App.Route("/categories", func(router fiber.Router) {
 		router.Get("/restaurant/:restaurant_id", menuCategoryController.GetByRestaurantID)
 		router.Get("/:id", menuCategoryController.GetByID)
 		router.Post("/", auth, menuCategoryController.Create)
+		router.Patch("/:id", auth, menuCategoryController.Update)
 		router.Delete("/:id", auth, menuCategoryController.Delete)
+		router.Put("/sort-order", auth, menuCategoryController.UpdateSortOrder)
 	})
 }
