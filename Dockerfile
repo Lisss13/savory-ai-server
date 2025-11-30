@@ -29,19 +29,18 @@ RUN apk --no-cache add ca-certificates tzdata
 # Copy the binary from the builder stage
 COPY --from=builder /app/server /app/server
 
-# Copy the configuration file
-COPY config/config.docker.toml /app/config/config.toml
-
-#COPY storage/selfsigned.crt /app/storage/selfsigned.crt
-#COPY storage/selfsigned.key /app/storage/selfsigned.key
+# Copy configuration files
+COPY config/config.docker.toml /app/config/config.docker.toml
+COPY config/config.railway.toml /app/config/config.railway.toml
 
 # Copy the storage directory for static files
 COPY storage /app/storage
 
-# Expose the port
+# Expose the port (Railway uses PORT env var)
 EXPOSE 4000
 
-# Run the application
-# The CONFIG_FILE environment variable can be used to specify a custom config file
-ENV CONFIG_FILE="/app/config/config.toml"
+# Default config (can be overridden by CONFIG_FILE env var)
+ENV CONFIG_FILE="/app/config/config.docker.toml"
+
+# Run the application with migrations
 CMD ["/app/server", "-migrate"]

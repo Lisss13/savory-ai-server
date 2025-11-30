@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"time"
 
@@ -12,6 +13,9 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
+
+// envVarRegex для поиска переменных окружения в формате ${VAR} или ${VAR:-default}
+var envVarRegex = regexp.MustCompile(`\$\{([^}:]+)(?::-([^}]*))?\}`)
 
 // app struct config
 type app = struct {
@@ -97,6 +101,27 @@ type Config struct {
 	Anthropic  anthropic
 }
 
+// expandEnvVars заменяет переменные окружения в строке.
+// Поддерживает форматы: ${VAR} и ${VAR:-default}
+func expandEnvVars(content []byte) []byte {
+	return envVarRegex.ReplaceAllFunc(content, func(match []byte) []byte {
+		groups := envVarRegex.FindSubmatch(match)
+		if len(groups) < 2 {
+			return match
+		}
+
+		varName := string(groups[1])
+		value := os.Getenv(varName)
+
+		// Если переменная не установлена и есть значение по умолчанию
+		if value == "" && len(groups) > 2 && len(groups[2]) > 0 {
+			value = string(groups[2])
+		}
+
+		return []byte(value)
+	})
+}
+
 // func to parse config
 func ParseConfig(name string, debug ...bool) (*Config, error) {
 	var (
@@ -118,6 +143,9 @@ func ParseConfig(name string, debug ...bool) (*Config, error) {
 		return &Config{}, err
 	}
 
+	// Подстановка переменных окружения
+	file = expandEnvVars(file)
+
 	err = toml.Unmarshal(file, &contents)
 
 	return contents, err
@@ -135,14 +163,6 @@ func validateConfig(cfg *Config) {
 
 	if cfg.DB.Postgres.DSN == "" {
 		log.Panic().Msg("Postgres DSN is required")
-	}
-
-	if cfg.App.Host == "" {
-		log.Panic().Msg("Host is required")
-	}
-
-	if cfg.App.ChatServiceIrl == "" {
-		log.Panic().Msg("Chat Service URL is required")
 	}
 }
 
