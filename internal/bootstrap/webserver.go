@@ -35,10 +35,12 @@ func NewFiber(cfg *config.Config) *fiber.App {
 	})
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowMethods: "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
-		MaxAge:       3600,
+		AllowOrigins:     "*",
+		AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, Cache-Control",
+		ExposeHeaders:    "Content-Length, Content-Type, Content-Disposition, Cache-Control, Last-Modified",
+		AllowCredentials: false,
+		MaxAge:           3600,
 	}))
 
 	// pass production config to check it

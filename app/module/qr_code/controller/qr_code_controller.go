@@ -2,13 +2,22 @@ package controller
 
 import (
 	"fmt"
-	"github.com/gofiber/fiber/v2"
-	"net/http"
 	"os"
 	"path/filepath"
-	"savory-ai-server/app/module/qr_code/service"
 	"strconv"
+
+	"github.com/gofiber/fiber/v2"
+	"savory-ai-server/app/module/qr_code/service"
 )
+
+// qrBasePath базовый путь к директории с QR-кодами.
+var qrBasePath string
+
+func init() {
+	// Получаем абсолютный путь к директории с QR-кодами
+	wd, _ := os.Getwd()
+	qrBasePath = filepath.Join(wd, "storage", "public", "qr_codes")
+}
 
 type qrCodeController struct {
 	qrCodeService service.QRCodeService
@@ -27,85 +36,106 @@ func NewQRCodeController(service service.QRCodeService) QRCodeController {
 	}
 }
 
+// GetRestaurantQRCode отдаёт QR-код ресторана как статический файл.
+// Метод: GET /qrcodes/restaurant/:restaurant_id
 func (c *qrCodeController) GetRestaurantQRCode(ctx *fiber.Ctx) error {
 	id, err := strconv.ParseUint(ctx.Params("restaurant_id"), 10, 32)
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).SendString("invalid restaurant_id")
 	}
 
 	filename := fmt.Sprintf("restaurant_qr_%d.png", id)
-	qrDir := filepath.Join("storage", "public", "qr_codes", filename)
-	if _, err = os.Stat(qrDir); os.IsNotExist(err) {
-		return ctx.Status(fiber.StatusNotFound).SendString("image not found")
+	filePath := filepath.Join(qrBasePath, filename)
+
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return ctx.Status(fiber.StatusNotFound).SendString("QR code not found")
 	}
 
-	return ctx.SendFile(qrDir)
+	// CORS и заголовки для статического файла
+	ctx.Set("Access-Control-Allow-Origin", "*")
+	ctx.Set("Content-Type", "image/png")
+	ctx.Set("Cache-Control", "public, max-age=86400")
+
+	return ctx.Send(data)
 }
 
+// DownloadRestaurantQRCode скачивание QR-кода ресторана.
+// Метод: GET /qrcodes/restaurant/:restaurant_id/download
 func (c *qrCodeController) DownloadRestaurantQRCode(ctx *fiber.Ctx) error {
 	id, err := strconv.ParseUint(ctx.Params("restaurant_id"), 10, 32)
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).SendString("invalid restaurant_id")
 	}
 
 	filename := fmt.Sprintf("restaurant_qr_%d.png", id)
-	qrDir := filepath.Join("storage", "public", "qr_codes", filename)
+	filePath := filepath.Join(qrBasePath, filename)
 
-	data, err := os.ReadFile(qrDir)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
-		return ctx.Status(fiber.StatusNotFound).SendString("image not found")
+		return ctx.Status(fiber.StatusNotFound).SendString("QR code not found")
 	}
 
-	contentType := http.DetectContentType(data)
-	ctx.Set("Content-Type", contentType)
+	// CORS и заголовки для скачивания
+	ctx.Set("Access-Control-Allow-Origin", "*")
+	ctx.Set("Content-Type", "image/png")
 	ctx.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
-	ctx.Set("Content-Length", fmt.Sprintf("%d", len(data)))
 
-	return ctx.SendFile(qrDir)
+	return ctx.Send(data)
 }
 
+// GetTableQRCode отдаёт QR-код столика как статический файл.
+// Метод: GET /qrcodes/restaurant/:restaurant_id/table/:table_id
 func (c *qrCodeController) GetTableQRCode(ctx *fiber.Ctx) error {
 	restaurantID, err := strconv.ParseUint(ctx.Params("restaurant_id"), 10, 32)
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).SendString("invalid restaurant_id")
 	}
 	tableID, err := strconv.ParseUint(ctx.Params("table_id"), 10, 32)
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).SendString("invalid table_id")
 	}
 
 	filename := fmt.Sprintf("table_qr_%d_%d.png", restaurantID, tableID)
-	qrDir := filepath.Join("storage", "public", "qr_codes", filename)
-	if _, err = os.Stat(qrDir); os.IsNotExist(err) {
-		return ctx.Status(fiber.StatusNotFound).SendString("image not found")
+	filePath := filepath.Join(qrBasePath, filename)
+
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return ctx.Status(fiber.StatusNotFound).SendString("QR code not found")
 	}
 
-	return ctx.SendFile(qrDir)
+	// CORS и заголовки для статического файла
+	ctx.Set("Access-Control-Allow-Origin", "*")
+	ctx.Set("Content-Type", "image/png")
+	ctx.Set("Cache-Control", "public, max-age=86400")
+
+	return ctx.Send(data)
 }
 
+// DownloadTableQRCode скачивание QR-кода столика.
+// Метод: GET /qrcodes/restaurant/:restaurant_id/table/:table_id/download
 func (c *qrCodeController) DownloadTableQRCode(ctx *fiber.Ctx) error {
 	restaurantID, err := strconv.ParseUint(ctx.Params("restaurant_id"), 10, 32)
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).SendString("invalid restaurant_id")
 	}
 	tableID, err := strconv.ParseUint(ctx.Params("table_id"), 10, 32)
 	if err != nil {
-		return err
+		return ctx.Status(fiber.StatusBadRequest).SendString("invalid table_id")
 	}
 
 	filename := fmt.Sprintf("table_qr_%d_%d.png", restaurantID, tableID)
-	qrDir := filepath.Join("storage", "public", "qr_codes", filename)
+	filePath := filepath.Join(qrBasePath, filename)
 
-	data, err := os.ReadFile(qrDir)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
-		return ctx.Status(fiber.StatusNotFound).SendString("image not found")
+		return ctx.Status(fiber.StatusNotFound).SendString("QR code not found")
 	}
 
-	contentType := http.DetectContentType(data)
-	ctx.Set("Content-Type", contentType)
+	// CORS и заголовки для скачивания
+	ctx.Set("Access-Control-Allow-Origin", "*")
+	ctx.Set("Content-Type", "image/png")
 	ctx.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
-	ctx.Set("Content-Length", fmt.Sprintf("%d", len(data)))
 
-	return ctx.SendFile(qrDir)
-
+	return ctx.Send(data)
 }

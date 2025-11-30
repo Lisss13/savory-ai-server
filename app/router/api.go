@@ -102,7 +102,7 @@ func (r *Router) Register() {
 	r.MenuCategoryRouter.RegisterMenuCategoryRoutes(authRequired)
 	r.DishRouter.RegisterDishRoutes(authRequired)
 	r.FileUploadRouter.RegisterFileUploadRoutes()
-	r.QrCodeRouter.RegisterQRCodeRoutes(authRequired)
+	r.QrCodeRouter.RegisterQRCodeRoutes()
 	r.TableRouter.RegisterTableRoutes(authRequired)
 	r.QuestionRouter.RegisterQuestionRoutes(authRequired)
 	r.RestaurantRouter.RegisterRestaurantRoutes(authRequired)
