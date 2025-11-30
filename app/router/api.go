@@ -88,12 +88,11 @@ func NewRouter(
 
 // Register routes
 func (r *Router) Register() {
-	// Test Routes
-	r.App.Get("/ping", PingHandler)
-
 	authRequired := middleware.AuthRequired(r.Cfg)
 	adminRequired := adminMiddleware.AdminRequired()
 
+	// Test Routes
+	r.App.Get("/ping", PingHandler)
 	r.App.Get("/auth/chek", authRequired, HealthCheckHandler)
 
 	//Register routes of modules

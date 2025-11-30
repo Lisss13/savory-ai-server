@@ -68,5 +68,49 @@
       }
     },
     "isImported": false
+  },
+  {
+    "id": "TASK_196",
+    "priority": "LOW",
+    "tags": [],
+    "title": "Разобраться с сессиями чата ",
+    "description": "",
+    "status": "TODO",
+    "date": {
+      "date": {
+        "year": 2025,
+        "month": 11,
+        "day": 30
+      },
+      "time": {
+        "hour": 16,
+        "minute": 19,
+        "second": 47,
+        "nano": 582960000
+      }
+    },
+    "isImported": false
+  },
+  {
+    "id": "TASK_238",
+    "priority": "LOW",
+    "tags": [],
+    "title": "добавить выбор валюты для ресторана ",
+    "description": "",
+    "status": "TODO",
+    "date": {
+      "date": {
+        "year": 2025,
+        "month": 11,
+        "day": 30
+      },
+      "time": {
+        "hour": 16,
+        "minute": 49,
+        "second": 5,
+        "nano": 587364000
+      }
+    },
+    "isImported": false
   }
 ]
