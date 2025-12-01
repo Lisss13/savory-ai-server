@@ -1,0 +1,55 @@
+# Configuration vars for cmd/app
+[app]
+name = "Fiber starter"
+port = ":4000"
+idle-timeout = 5 # As seconds
+print-routes = false
+prefork = false
+production = false
+CHAT_SERVICE_URL = "http://localhost:4000" # URL for ai chat cleint
+
+[app.tls]
+enable = false
+cert-file = "./storage/selfsigned.crt"
+key-file = "./storage/selfsigned.key"
+
+[db.postgres]
+dsn = "postgresql://savory_admin:savory_password@postgres:5432/savory_db" # <driver>://<username>:<password>@<host>:<port>/<storage>
+
+[logger]
+time-format = "" # https://pkg.go.dev/time#pkg-constants, https://github.com/rs/zerolog/blob/master/api.go#L10
+level = 0 # panic -> 5, fatal -> 4, error -> 3, warn -> 2, info -> 1, debug -> 0, trace -> -1
+prettier = true
+
+[middleware.compress]
+enable = true
+level = 1
+
+[middleware.recover]
+enable = true
+
+[middleware.monitor]
+enable = false
+path = "/monitor"
+
+[middleware.pprof]
+enable = true
+
+[middleware.limiter]
+enable = false
+max = 20
+expiration_seconds = 60
+
+[middleware.jwt]
+secret = "/2+XnmJGz1j3ehIVI/5P9kl+CghrE3DcS7rnT+qar5w="
+expiration_seconds = 360000
+
+[middleware.filesystem]
+enable = true
+browse = true
+max_age = 3600
+index = "index.html"
+root = "./storage/public"
+
+[anthropic]
+api_key = "${ANTHROPIC_API_KEY}" # Set via environment variable

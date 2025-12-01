@@ -13,8 +13,8 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "mironovq30@gmail.com",
-  "password": "Qwerty12e"
+  "email": "adsf1@sdf.com",
+  "password": "adsf1@sdf.com"
 }
 
 > {%
@@ -24,8 +24,8 @@ Content-Type: application/json
 
     if (response.body.data) {
         client.global.set("auth_token", response.body.data.token || response.body.data.accessToken);
-        if (response.body.data.user && response.body.data.user.organization) {
-            client.global.set("organization_id", response.body.data.user.organization.id);
+        if (response.body.data.user && response.body.data.organization) {
+            client.global.set("organization_id", response.body.data.organization.id);
         }
     }
 %}
@@ -35,7 +35,7 @@ Content-Type: application/json
 ### ------------------------------------------
 
 ### 2.1 Получить рестораны организации
-GET {{baseUrl}}/restaurants
+GET {{baseUrl}}/restaurants/organization/{{organization_id}}
 Authorization: Bearer {{auth_token}}
 
 > {%

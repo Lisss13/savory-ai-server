@@ -23,7 +23,10 @@ vendor/
 # Directories for AIR
 tmp
 
-*.toml
+# Ignore local config, but keep docker and railway configs
+config/config.toml
+!config/config.docker.toml
+!config/config.railway.toml
 
 .vscode/
 
