@@ -29,6 +29,7 @@ type RestaurantResp struct {
 	Description         string            `json:"description"`
 	ImageURL            string            `json:"image_url"`
 	Menu                string            `json:"menu,omitempty"`
+	Currency            string            `json:"currency"` // Валюта для отображения цен (ISO 4217)
 	ReservationDuration int               `json:"reservation_duration"`
 	WorkingHours        []WorkingHourResp `json:"working_hours"`
 }

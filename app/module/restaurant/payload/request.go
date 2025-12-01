@@ -17,6 +17,7 @@ type CreateRestaurantReq struct {
 	Description         string           `json:"description"`
 	ImageURL            string           `json:"image_url"`
 	Menu                string           `json:"menu,omitempty"`
+	Currency            string           `json:"currency" validate:"omitempty,len=3"`                      // Валюта для цен (ISO 4217: USD, EUR, RUB). По умолчанию USD
 	ReservationDuration int              `json:"reservation_duration" validate:"omitempty,min=30,max=480"` // Duration in minutes (30min - 8 hours)
 	WorkingHours        []WorkingHourReq `json:"working_hours" validate:"required"`
 }
@@ -31,5 +32,6 @@ type UpdateRestaurantReq struct {
 	Description         string `json:"description"`
 	ImageURL            string `json:"image_url"`
 	Menu                string `json:"menu,omitempty"`
+	Currency            string `json:"currency" validate:"omitempty,len=3"` // Валюта для цен (ISO 4217: USD, EUR, RUB)
 	ReservationDuration int    `json:"reservation_duration" validate:"omitempty,min=30,max=480"`
 }

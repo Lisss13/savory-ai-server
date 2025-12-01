@@ -89,6 +89,12 @@ func (s *restaurantService) Create(req *payload.CreateRestaurantReq) (*payload.R
 		reservationDuration = 90 // Default 90 minutes
 	}
 
+	// Set default currency if not provided
+	currency := req.Currency
+	if currency == "" {
+		currency = "USD" // Default USD
+	}
+
 	// Create restaurant
 	restaurant := &storage.Restaurant{
 		OrganizationID:      req.OrganizationID,
@@ -99,6 +105,7 @@ func (s *restaurantService) Create(req *payload.CreateRestaurantReq) (*payload.R
 		Description:         req.Description,
 		ImageURL:            req.ImageURL,
 		Menu:                req.Menu,
+		Currency:            currency,
 		ReservationDuration: reservationDuration,
 		WorkingHours:        workingHours,
 	}
@@ -132,6 +139,9 @@ func (s *restaurantService) Update(id uint, req *payload.UpdateRestaurantReq) (*
 	existingRestaurant.Description = req.Description
 	existingRestaurant.ImageURL = req.ImageURL
 	existingRestaurant.Menu = req.Menu
+	if req.Currency != "" {
+		existingRestaurant.Currency = req.Currency
+	}
 	if req.ReservationDuration > 0 {
 		existingRestaurant.ReservationDuration = req.ReservationDuration
 	}
@@ -184,6 +194,7 @@ func mapRestaurantToResponse(restaurant *storage.Restaurant) payload.RestaurantR
 		Description:         restaurant.Description,
 		ImageURL:            restaurant.ImageURL,
 		Menu:                restaurant.Menu,
+		Currency:            restaurant.Currency,
 		ReservationDuration: restaurant.ReservationDuration,
 		WorkingHours:        workingHourResps,
 	}

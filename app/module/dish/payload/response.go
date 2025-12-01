@@ -20,8 +20,9 @@ type AllergenResp struct {
 
 // RestaurantResp представляет ресторан в ответе блюда.
 type RestaurantResp struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
+	ID       uint   `json:"id"`
+	Name     string `json:"name"`
+	Currency string `json:"currency"` // Валюта для отображения цен блюд (ISO 4217)
 }
 
 // MenuCategoryResp представляет категорию меню в ответе блюда.

@@ -16,6 +16,7 @@ type Restaurant struct {
 	Description         string         `gorm:"column:description" json:"description"`
 	ImageURL            string         `gorm:"column:image_url" json:"image_url"`
 	Menu                string         `gorm:"column:menu" json:"menu"`
+	Currency            string         `gorm:"column:currency;default:USD" json:"currency"`                        // Валюта для отображения цен (ISO 4217: USD, EUR, RUB и т.д.)
 	ReservationDuration int            `gorm:"column:reservation_duration;default:90" json:"reservation_duration"` // Duration in minutes
 	WorkingHours        []*WorkingHour `gorm:"foreignKey:RestaurantID" json:"working_hours"`
 }

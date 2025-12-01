@@ -260,8 +260,9 @@ func mapDishToResponse(dish *storage.Dish) payload.DishResp {
 
 	// Map restaurant
 	restaurantResp := payload.RestaurantResp{
-		ID:   dish.Restaurant.ID,
-		Name: dish.Restaurant.Name,
+		ID:       dish.Restaurant.ID,
+		Name:     dish.Restaurant.Name,
+		Currency: dish.Restaurant.Currency,
 	}
 
 	// Map dish
