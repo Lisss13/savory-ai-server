@@ -34,7 +34,8 @@ func (s *restaurantService) GetAll() (*payload.RestaurantsResp, error) {
 		return nil, err
 	}
 
-	var restaurantResps []payload.RestaurantResp
+	// Инициализируем пустой массив, чтобы возвращать [] вместо null
+	restaurantResps := make([]payload.RestaurantResp, 0)
 	for _, restaurant := range restaurants {
 		restaurantResps = append(restaurantResps, mapRestaurantToResponse(restaurant))
 	}
@@ -60,7 +61,8 @@ func (s *restaurantService) GetByOrganizationID(organizationID uint) (*payload.R
 		return nil, err
 	}
 
-	var restaurantResps []payload.RestaurantResp
+	// Инициализируем пустой массив, чтобы возвращать [] вместо null
+	restaurantResps := make([]payload.RestaurantResp, 0)
 	for _, restaurant := range restaurants {
 		restaurantResps = append(restaurantResps, mapRestaurantToResponse(restaurant))
 	}
